@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?definisci MYSQL_PASSWORD in .env}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?definisci MYSQL_ROOT_PASSWORD in .env}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -29,7 +29,7 @@ services:
       MYSQL_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?definisci KEYCLOAK_DB_PASSWORD in .env}
       MYSQL_ROOT_PASSWORD: ${KEYCLOAK_DB_ROOT_PASSWORD:?definisci KEYCLOAK_DB_ROOT_PASSWORD in .env}
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql-keycloak-data:/var/lib/mysql
     healthcheck:
@@ -42,7 +42,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.8.1
     restart: unless-stopped
-    command: ["start-dev"]
+    command: ["start-dev", "--import-realm"]
     environment:
       KC_DB: mysql
       KC_DB_URL: jdbc:mysql://mysql-keycloak:3306/keycloak
@@ -50,8 +50,17 @@ services:
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?definisci KEYCLOAK_DB_PASSWORD in .env}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?definisci KEYCLOAK_ADMIN_PASSWORD in .env}
+      KC_HEALTH_ENABLED: "true"
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./keycloak/realm-infraorgit.json:/opt/keycloak/data/import/realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
     depends_on:
       mysql-keycloak:
         condition: service_healthy
@@ -69,7 +78,12 @@ services:
       - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ../infraorgit-web/dist:/srv:ro
+      - type: bind
+        source: ../infraorgit-web/dist
+        target: /srv
+        read_only: true
+        bind:
+          create_host_path: false
       - caddy-data:/data
       - caddy-config:/config
 
