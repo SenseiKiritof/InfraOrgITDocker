@@ -22,6 +22,8 @@ docker compose up -d --wait mysql mysql-keycloak keycloak
 
 Keycloak importa `keycloak/realm-infraorgit.json`: client `infraorgit`, utente di test `admin` / `dev-admin`. Credenziali solo di sviluppo, mai in produzione.
 
+Se modifichi il realm, il client o il secret, `--import-realm` non aggiorna un realm già esistente. Usa `make reset` dal meta repo (rimuove i volumi) e riavvia.
+
 Console Keycloak: http://localhost:8080/admin con le credenziali admin in `.env`.
 
 Profilo completo con Caddy:
