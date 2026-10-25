@@ -1,0 +1,19 @@
+# Produzione: un solo origin per SPA e API (cookie first-party, niente CORS).
+# Keycloak: l'integrazione same-host si completa con il BFF in Fase 2.
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy {$API_UPSTREAM:api:8080}
+	}
+
+	handle /auth/* {
+		reverse_proxy {$API_UPSTREAM:api:8080}
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
