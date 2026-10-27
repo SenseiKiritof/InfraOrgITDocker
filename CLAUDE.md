@@ -1,8 +1,8 @@
-# infraorgit-docker — guida per agenti
+# InfraOrgITDocker — guida per agenti
 
 `AGENTS.md` è un symlink a questo file, letto da opencode e dagli altri agenti: modifica solo `CLAUDE.md`.
 
-Leggi `../AGENTS.md` e `../PLAN.md`.
+Leggi `../AllInfraOrgIT/README.md` e `../AllInfraOrgIT/docs/backlog.md`.
 
 - Segreti solo in `.env` locale o secret manager; versionare solo `.env.example` con valori finti.
 - Niente dump, dati rappresentativi, chiavi Keycloak o `data/` nel repo.

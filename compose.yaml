@@ -92,7 +92,7 @@ services:
     image: infraorgit-api:${API_TAG:-local}
     profiles: ["full"]
     build:
-      context: ../infraorgit
+      context: ../InfraOrgITApi
     command: ["migrate"]
     restart: "no"
     depends_on:
@@ -112,7 +112,7 @@ services:
     image: infraorgit-api:${API_TAG:-local}
     profiles: ["full"]
     build:
-      context: ../infraorgit
+      context: ../InfraOrgITApi
     restart: unless-stopped
     depends_on:
       migrate:
@@ -170,7 +170,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - type: bind
-        source: ../infraorgit-web/dist
+        source: ../InfraOrgITWeb/dist
         target: /srv
         read_only: true
         bind:

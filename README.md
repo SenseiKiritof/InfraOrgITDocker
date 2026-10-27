@@ -1,6 +1,8 @@
-# infraorgit-docker
+# InfraOrgITDocker
 
 Infra locale per InfraOrgIT: Docker Compose con MySQL, Keycloak e Caddy. La configurazione di produzione completa arriva in Fase 8.
+
+Progetto Compose: `infraorgit` (prima `infraorgit`): la rinomina crea volumi nuovi (`infraorgit_mysql-data`, …). `make dev` applica le migration all'avvio, quindi il DB nuovo si popola da solo; i vecchi volumi `infraorgit_*` possono essere rimossi o copiati a mano.
 
 ## Servizi
 
@@ -11,7 +13,7 @@ Infra locale per InfraOrgIT: Docker Compose con MySQL, Keycloak e Caddy. La conf
 | `keycloak` | 127.0.0.1:8080 | OIDC, realm `infraorgit` |
 | `mysql-legacy` | 127.0.0.1:3308 | dump legacy fittizio per il rehearsal Fase 7 (profilo `legacy`) |
 | `migrate` | — | job EF una tantum, esce a schema aggiornato (profilo `full`) |
-| `api` | interna 8080 | API .NET non-root, filesystem read-only (profilo `full`) |
+| `api` | interna 8080 | API .NET non-root, filesystem read-only (profilo `full`), immagine `infraorgit-api` |
 | `caddy` | 80/443 | SPA + reverse proxy API (profilo `full`) |
 
 Le porte sono legate a loopback: l'infra non è raggiungibile dalla LAN. MySQL e Keycloak sono configurati per lo sviluppo; la produzione arriva in Fase 8.
@@ -50,6 +52,8 @@ Osservabilità: l'API emette log JSON con correlation id. Impostando `OTEL_EXPOR
 
 `legacy/01-schema.sql` e `legacy/02-data.sql` creano uno schema legacy ridotto con dati finti: un ambiente, un provider, una macchina, un proxy, un servizio, un diagramma e un'esecuzione. Serve solo a provare l'importer della Fase 7, non contiene dati rappresentativi.
 
+La struttura è allineata al export legacy (`InfraOrgITDocker/legacy/01-schema.sql`): stessi tipi, default, indici e foreign key. Restano fuori solo `AdminAuditEntries` e `__EFMigrationsHistory`, che l'importer non legge.
+
 ```bash
 docker compose --profile legacy up -d --wait mysql-legacy
 cd ../AllInfraOrgIT && make legacy-rehearsal
@@ -63,3 +67,12 @@ Il container non ha volume: ogni ricreazione riesegue gli init script e riparte 
 - Nessuno schema o seed del target negli init SQL: lo schema nasce dalle migration EF. `legacy/` contiene solo lo schema legacy ridotto per il rehearsal.
 - Versioni esplicite delle immagini; digest pinnati alla release.
 - Il realm JSON contiene solo credenziali di sviluppo, mai dati rappresentativi.
+
+## Immagini applicative
+
+Il Compose locale costruisce l'API dal contesto `../InfraOrgITApi`. Per una release si usano le immagini pubblicate dai repo applicativi:
+
+- `ghcr.io/senseikiritof/infraorgit-api:<versione>`
+- `ghcr.io/senseikiritof/infraorgit-web:<versione>`
+
+La web non è usata dal profilo `full` (Caddy serve `../InfraOrgITWeb/dist`), ma è distribuibile da sola su porta 80.

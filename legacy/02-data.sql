@@ -71,11 +71,11 @@ INSERT INTO `Servers` (`Id`, `ProviderEnvironmentId`, `Name`, `IpAddress`, `Host
 INSERT INTO `ProxyConnections` (`Id`, `SourceServerId`, `TargetServerId`, `Direction`, `CreatedAt`) VALUES
   (7921, 7911, 7912, 'Outgoing', '2026-10-20 10:00:00.000000');
 
-INSERT INTO `ServerApplications` (`Id`, `ServerId`, `ApplicationVersionId`, `ExposedPort`, `ProxyRouteId`) VALUES
-  (7931, 7911, 7811, 8081, 7941);
-
 INSERT INTO `ProxyRoutes` (`Id`, `ProxyConnectionId`, `Route`, `MappedTo`, `TargetServerApplicationId`, `TargetProxyConnectionId`) VALUES
   (7941, 7921, '/servizio', 'servizio-fittizio', NULL, NULL);
+
+INSERT INTO `ServerApplications` (`Id`, `ServerId`, `ApplicationVersionId`, `ExposedPort`, `ProxyRouteId`) VALUES
+  (7931, 7911, 7811, 8081, 7941);
 
 INSERT INTO `ReachabilityTests` (`Id`, `ServerId`, `Hostname`, `Port`, `Description`) VALUES
   (7951, 7911, '10.10.10.10', 8081, 'Servizio fittizio');
