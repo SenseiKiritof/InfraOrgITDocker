@@ -1,78 +1,78 @@
 # InfraOrgITDocker
 
-Infra locale per InfraOrgIT: Docker Compose con MySQL, Keycloak e Caddy. La configurazione di produzione completa arriva in Fase 8.
+Local infra for InfraOrgIT: Docker Compose with MySQL, Keycloak and Caddy. The complete production configuration arrives in Phase 8.
 
-Progetto Compose: `infraorgit` (prima `infraorgit`): la rinomina crea volumi nuovi (`infraorgit_mysql-data`, …). `make dev` applica le migration all'avvio, quindi il DB nuovo si popola da solo; i vecchi volumi `infraorgit_*` possono essere rimossi o copiati a mano.
+Compose project: `infraorgit`. `make dev` applies migrations on startup, so the database populates itself; local volumes can be removed with `make reset`.
 
-## Servizi
+## Services
 
-| Servizio | Porta host | Scopo |
+| Service | Host port | Purpose |
 |---|---|---|
-| `mysql` | 127.0.0.1:3306 | database applicativo `infraorgit` |
-| `mysql-keycloak` | 127.0.0.1:3307 | database Keycloak |
+| `mysql` | 127.0.0.1:3306 | application database `infraorgit` |
+| `mysql-keycloak` | 127.0.0.1:3307 | Keycloak database |
 | `keycloak` | 127.0.0.1:8080 | OIDC, realm `infraorgit` |
-| `mysql-legacy` | 127.0.0.1:3308 | dump legacy fittizio per il rehearsal Fase 7 (profilo `legacy`) |
-| `migrate` | — | job EF una tantum, esce a schema aggiornato (profilo `full`) |
-| `api` | interna 8080 | API .NET non-root, filesystem read-only (profilo `full`), immagine `infraorgit-api` |
-| `caddy` | 80/443 | SPA + reverse proxy API (profilo `full`) |
+| `mysql-legacy` | 127.0.0.1:3308 | fake legacy dump for the Phase 7 rehearsal (`legacy` profile) |
+| `migrate` | — | one-off EF job, exits when the schema is up to date (`full` profile) |
+| `api` | internal 8080 | non-root .NET API, read-only filesystem (`full` profile), `infraorgit-api` image |
+| `caddy` | 80/443 | SPA + API reverse proxy (`full` profile) |
 
-Le porte sono legate a loopback: l'infra non è raggiungibile dalla LAN. MySQL e Keycloak sono configurati per lo sviluppo; la produzione arriva in Fase 8.
+Ports are bound to loopback: the infra is not reachable from the LAN. MySQL and Keycloak are configured for development; production arrives in Phase 8.
 
-## Avvio
+## Start
 
 ```bash
 cp .env.example .env
 docker compose up -d --wait mysql mysql-keycloak keycloak
 ```
 
-Keycloak importa `keycloak/realm-infraorgit.json`: client `infraorgit`, utente di test `admin` / `dev-admin`. Credenziali solo di sviluppo, mai in produzione.
+Keycloak imports `keycloak/realm-infraorgit.json`: client `infraorgit`, test user `admin` / `dev-admin`. Development-only credentials, never in production.
 
-Se modifichi il realm, il client o il secret, `--import-realm` non aggiorna un realm già esistente. Usa `make reset` dal meta repo (rimuove i volumi) e riavvia.
+If you change the realm, the client or the secret, `--import-realm` does not update an existing realm. Use `make reset` from the meta repo (removes the volumes) and restart.
 
-Console Keycloak: http://localhost:8080/admin con le credenziali admin in `.env`.
+Keycloak console: http://localhost:8080/admin with the admin credentials in `.env`.
 
-Profilo completo con API, job migrazioni e Caddy:
+Full profile with API, migration job and Caddy:
 
 ```bash
-# dal meta repo: build del frontend, chiave credenziali da env.sh, poi compose
+# from the meta repo: frontend build, credential key from env.sh, then compose
 make full
 ```
 
-Caddy serve `dist/` e inoltra `/api/*` e `/auth/*` a `API_UPSTREAM` (default `api:8080`), `/realms/*` e `/resources/*` a Keycloak. L'API gira come utente `app` con root filesystem read-only, `cap_drop: ALL` e `no-new-privileges`; il job `migrate` applica le migration e termina prima dell'avvio API. Le sessioni stanno in MySQL (tabella `Sessions`, payload cifrato) e le chiavi DataProtection nel volume `api-dp-keys`: il restart dell'API non fa perdere il login.
+Caddy serves `dist/` and forwards `/api/*` and `/auth/*` to `API_UPSTREAM` (default `api:8080`), `/realms/*` and `/resources/*` to Keycloak. The API runs as user `app` with a read-only root filesystem, `cap_drop: ALL` and `no-new-privileges`; the `migrate` job applies migrations and exits before the API starts. Sessions live in MySQL (`Sessions` table, encrypted payload) and DataProtection keys in the `api-dp-keys` volume: restarting the API does not lose the login.
 
-Keycloak nel profilo full usa `start` (non `start-dev`) con `KC_HOSTNAME=https://localhost`, proxy headers e backchannel dinamico: l'issuer pubblico è `https://localhost/realms/infraorgit`, mentre l'API raggiunge discovery, token e JWKS su `http://keycloak:8080` (`Oidc__InternalIssuer`, `Oidc__AllowInsecureInternalDiscovery=true`). API e Keycloak condividono la rete `auth` isolata (`internal: true`), così gli altri container non vedono il traffico OIDC; resta HTTP interno, quindi il compromesso di uno dei due container espone comunque i token.
+Keycloak in the `full` profile uses `start` (not `start-dev`) with `KC_HOSTNAME=https://localhost`, proxy headers and dynamic backchannel: the public issuer is `https://localhost/realms/infraorgit`, while the API reaches discovery, tokens and JWKS on `http://keycloak:8080` (`Oidc__InternalIssuer`, `Oidc__AllowInsecureInternalDiscovery=true`). API and Keycloak share the isolated `auth` network (`internal: true`), so the other containers do not see the OIDC traffic; it is still internal HTTP, so compromising either container still exposes the tokens.
 
-Per un host reale servono `SITE_ADDRESS`, `SITE_URL`, `OIDC_ISSUER`, `OIDC_INTERNAL_ISSUER`, `OIDC_REDIRECT_URI` e `FRONTEND_BASE_URL` coerenti tra loro, e i redirect URI del client Keycloak aggiornati. I redirect attuali coprono solo `http://localhost:3000` e `https://localhost`.
+For a real host you need `SITE_ADDRESS`, `SITE_URL`, `OIDC_ISSUER`, `OIDC_INTERNAL_ISSUER`, `OIDC_REDIRECT_URI` and `FRONTEND_BASE_URL` consistent with each other, plus updated Keycloak client redirect URIs. The current redirects only cover `http://localhost:3000` and `https://localhost`.
 
-Attenzione: cambiare `keycloak/realm-infraorgit.json` non aggiorna un realm già importato. Serve un volume Keycloak nuovo (`make reset`, che rimuove anche i dati applicativi) oppure l'aggiornamento del client dalla console.
+Warning: changing `keycloak/realm-infraorgit.json` does not update an already imported realm. You need a new Keycloak volume (`make reset`, which also removes the application data) or updating the client from the console.
 
-Osservabilità: l'API emette log JSON con correlation id. Impostando `OTEL_EXPORTER_OTLP_ENDPOINT` nel `.env` abilita tracce e metriche OTLP; senza collector restano disabilitate.
+Observability: the API emits JSON logs with a correlation id. Setting `OTEL_EXPORTER_OTLP_ENDPOINT` in `.env` enables OTLP traces and metrics; without a collector they stay disabled.
 
-## Dump legacy fittizio
+## Fake legacy dump
 
-`legacy/01-schema.sql` e `legacy/02-data.sql` creano uno schema legacy ridotto con dati finti: un ambiente, un provider, una macchina, un proxy, un servizio, un diagramma e un'esecuzione. Serve solo a provare l'importer della Fase 7, non contiene dati rappresentativi.
+`legacy/01-schema.sql` and `legacy/02-data.sql` create a reduced legacy schema with fake data: one environment, one provider, one machine, one proxy, one service, one diagram and one execution. It only exists to test the Phase 7 importer and contains no production data.
 
-La struttura è allineata al export legacy (`InfraOrgITDocker/legacy/01-schema.sql`): stessi tipi, default, indici e foreign key. Restano fuori solo `AdminAuditEntries` e `__EFMigrationsHistory`, che l'importer non legge.
+The structure matches the legacy export (`InfraOrgITDocker/legacy/01-schema.sql`): same types, defaults, indexes and foreign keys. Only `AdminAuditEntries` and `__EFMigrationsHistory` are left out, which the importer does not read.
 
 ```bash
 docker compose --profile legacy up -d --wait mysql-legacy
 cd ../AllInfraOrgIT && make legacy-rehearsal
 ```
 
-Il container non ha volume: ogni ricreazione riesegue gli init script e riparte da zero.
+The container has no volume: every recreation re-runs the init scripts and starts from scratch.
 
-## Regole
+## Rules
 
-- `.env` non si committa; solo `.env.example`.
-- Nessuno schema o seed del target negli init SQL: lo schema nasce dalle migration EF. `legacy/` contiene solo lo schema legacy ridotto per il rehearsal.
-- Versioni esplicite delle immagini; digest pinnati alla release.
-- Il realm JSON contiene solo credenziali di sviluppo, mai dati rappresentativi.
+- `.env` is not committed; only `.env.example`.
+- No target schema or seed in the init SQL: the schema comes from EF migrations. `legacy/` only contains the reduced legacy schema for the rehearsal.
+- Explicit image versions; digests pinned at release.
+- The realm JSON contains development credentials only, never production data.
 
-## Immagini applicative
+## Application images
 
-Il Compose locale costruisce l'API dal contesto `../InfraOrgITApi`. Per una release si usano le immagini pubblicate dai repo applicativi:
+The local Compose builds the API from the `../InfraOrgITApi` context. For a release, use the images published by the application repos:
 
 - `ghcr.io/senseikiritof/infraorgit-api:<versione>`
 - `ghcr.io/senseikiritof/infraorgit-web:<versione>`
 
-La web non è usata dal profilo `full` (Caddy serve `../InfraOrgITWeb/dist`), ma è distribuibile da sola su porta 80.
+The web image is not used by the `full` profile (Caddy serves `../InfraOrgITWeb/dist`), but it can be shipped on its own on port 80.

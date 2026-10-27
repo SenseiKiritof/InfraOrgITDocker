@@ -1,4 +1,4 @@
-# Produzione: un solo origin per SPA, API e Keycloak (cookie first-party, niente CORS).
+# Production: a single origin for SPA, API and Keycloak (first-party cookies, no CORS).
 {$SITE_ADDRESS:localhost} {
 	encode zstd gzip
 

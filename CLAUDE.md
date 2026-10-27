@@ -1,12 +1,12 @@
-# InfraOrgITDocker — guida per agenti
+# InfraOrgITDocker — agent guide
 
-`AGENTS.md` è un symlink a questo file, letto da opencode e dagli altri agenti: modifica solo `CLAUDE.md`.
+`AGENTS.md` is a symlink to this file, read by opencode and the other agents: edit only `CLAUDE.md`.
 
-Leggi `../AllInfraOrgIT/README.md` e `../AllInfraOrgIT/docs/backlog.md`.
+Read `../AllInfraOrgIT/README.md` and `../AllInfraOrgIT/docs/backlog.md`.
 
-- Segreti solo in `.env` locale o secret manager; versionare solo `.env.example` con valori finti.
-- Niente dump, dati rappresentativi, chiavi Keycloak o `data/` nel repo.
-- Lo schema del database non si scrive qui: migration EF nel backend.
-- Keycloak in dev usa `start-dev` con import del realm `infraorgit`; la configurazione di produzione si aggiunge in Fase 8.
-- Il realm JSON e `.env.example` contengono solo credenziali di sviluppo; mai dati rappresentativi.
-- Ogni modifica a Compose o Caddyfile deve passare `docker compose config -q` e `caddy validate`.
+- Secrets only in a local `.env` or a secret manager; version only `.env.example` with fake values.
+- No dumps, representative data, Keycloak keys or `data/` in the repo.
+- The database schema is not written here: EF migrations in the backend.
+- Keycloak in dev uses `start-dev` with the `infraorgit` realm import; the production configuration is added in Phase 8.
+- The realm JSON and `.env.example` contain development credentials only; never production data.
+- Every change to Compose or the Caddyfile must pass `docker compose config -q` and `caddy validate`.

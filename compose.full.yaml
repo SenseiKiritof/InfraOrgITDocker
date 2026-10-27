@@ -1,5 +1,5 @@
 # Override del profilo full: Keycloak in modalità production dietro Caddy.
-# Usato da `make full` insieme a compose.yaml; non cambia lo sviluppo (`make dev`).
+# Used by `make full` together with compose.yaml; it does not change development (`make dev`).
 services:
   keycloak:
     command: ["start", "--import-realm"]
