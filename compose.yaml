@@ -2,7 +2,7 @@ name: infraorgit
 
 services:
   mysql:
-    image: mysql:8.4
+    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: infraorgit
@@ -21,7 +21,7 @@ services:
       start_period: 30s
 
   mysql-keycloak:
-    image: mysql:8.4
+    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: keycloak
@@ -40,7 +40,7 @@ services:
       start_period: 30s
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.8.1
+    image: quay.io/keycloak/keycloak:26.8.1@sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b
     restart: unless-stopped
     command: ["start-dev", "--import-realm"]
     environment:
@@ -64,9 +64,100 @@ services:
     depends_on:
       mysql-keycloak:
         condition: service_healthy
+    networks:
+      - default
+      - auth
+
+  mysql-legacy:
+    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
+    profiles: ["legacy"]
+    restart: "no"
+    environment:
+      MYSQL_DATABASE: infraorgit_legacy
+      MYSQL_USER: legacy
+      MYSQL_PASSWORD: ${LEGACY_DB_PASSWORD:-dev-legacy-password}
+      MYSQL_ROOT_PASSWORD: ${LEGACY_DB_ROOT_PASSWORD:-dev-legacy-root-password}
+    ports:
+      - "127.0.0.1:3308:3306"
+    volumes:
+      - ./legacy:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" -e 'SELECT 1 FROM infraorgit_legacy.Servers LIMIT 1' --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  migrate:
+    image: infraorgit-api:${API_TAG:-local}
+    profiles: ["full"]
+    build:
+      context: ../infraorgit
+    command: ["migrate"]
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MySql: "Server=mysql;Port=3306;Database=infraorgit;User ID=infraorgit;Password=${MYSQL_PASSWORD};"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    image: infraorgit-api:${API_TAG:-local}
+    profiles: ["full"]
+    build:
+      context: ../infraorgit
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MySql: "Server=mysql;Port=3306;Database=infraorgit;User ID=infraorgit;Password=${MYSQL_PASSWORD};"
+      Oidc__Issuer: ${OIDC_ISSUER:-https://localhost/realms/infraorgit}
+      Oidc__InternalIssuer: ${OIDC_INTERNAL_ISSUER:-http://keycloak:8080/realms/infraorgit}
+      Oidc__AllowInsecureInternalDiscovery: "true"
+      Oidc__ClientId: ${OIDC_CLIENT_ID:-infraorgit}
+      Oidc__ClientSecret: ${Oidc__ClientSecret:?definisci Oidc__ClientSecret in .env}
+      Oidc__RedirectUri: ${OIDC_REDIRECT_URI:-https://localhost/auth/callback}
+      Frontend__BaseUrl: ${FRONTEND_BASE_URL:-https://localhost}
+      Auth__SecureCookies: "true"
+      ServerAccess__CredentialKeys__1: ${ServerAccess__CredentialKey:-}
+      ServerAccess__CurrentKeyVersion: ${ServerAccess__CurrentKeyVersion:-1}
+      DataProtection__KeysPath: /home/app/.aspnet/DataProtection-Keys
+      SessionStore__MaxSessionsPerUser: ${SESSION_MAX_PER_USER:-10}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      ForwardedHeaders__KnownNetworks: ${FORWARDED_NETWORKS:-172.16.0.0/12,10.0.0.0/8,192.168.0.0/16}
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - api-dp-keys:/home/app/.aspnet/DataProtection-Keys
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health/live || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+    networks:
+      - default
+      - auth
 
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
     profiles: ["full"]
     restart: unless-stopped
     environment:
@@ -86,9 +177,17 @@ services:
           create_host_path: false
       - caddy-data:/data
       - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+networks:
+  auth:
+    internal: true
 
 volumes:
   mysql-data:
   mysql-keycloak-data:
+  api-dp-keys:
   caddy-data:
   caddy-config:
