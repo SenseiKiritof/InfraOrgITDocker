@@ -1,6 +1,6 @@
 -- Schema legacy per il rehearsal della Fase 7.
--- Struttura allineata a InfraOrgITDocker/legacy/01-schema.sql
--- (schema legacy): stessi tipi, default, indici e foreign key.
+-- Struttura allineata al sistema legacy:
+-- stessi tipi, default, indici e foreign key.
 -- Ridotto alle tabelle lette da tools/LegacyImport; restano fuori
 -- AdminAuditEntries e __EFMigrationsHistory, che l'importer non legge.
 -- Nessun dato e nessun artefatto reale: i dati fittizi stanno in 02-data.sql.

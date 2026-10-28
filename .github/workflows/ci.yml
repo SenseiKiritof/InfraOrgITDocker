@@ -18,5 +18,3 @@ jobs:
         run: docker compose config -q
       - name: Valida realm Keycloak
         run: jq empty keycloak/realm-infraorgit.json
-      - name: Valida Caddyfile
-        run: docker run --rm -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile

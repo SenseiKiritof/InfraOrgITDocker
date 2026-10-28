@@ -3,3 +3,22 @@
 !.env.example
 data/
 *.log
+
+# Local legacy exports, dumps and certificates (never publish)
+init/
+the legacy export
+*.dump
+*.bak
+*.sql.gz
+*.tar
+*.tar.gz
+*.zip
+*.pem
+*.key
+*.crt
+*.p12
+*.cer
+secrets/
+docker-compose.override.yml
+.DS_Store
+.opencode/

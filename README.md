@@ -54,7 +54,7 @@ Observability: the API emits JSON logs with a correlation id. Setting `OTEL_EXPO
 
 `legacy/01-schema.sql` and `legacy/02-data.sql` create a reduced legacy schema with fake data: one environment, one provider, one machine, one proxy, one service, one diagram and one execution. It only exists to test the Phase 7 importer and contains no production data.
 
-The structure matches the legacy export (`InfraOrgITDocker/legacy/01-schema.sql`): same types, defaults, indexes and foreign keys. Only `AdminAuditEntries` and `__EFMigrationsHistory` are left out, which the importer does not read.
+The reduced schema mirrors the legacy table layout: same types, defaults, indexes and foreign keys. Only `AdminAuditEntries` and `__EFMigrationsHistory` are left out, which the importer does not read.
 
 ```bash
 docker compose --profile legacy up -d --wait mysql-legacy
