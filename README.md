@@ -2,16 +2,15 @@
 
 Docker Compose stack for InfraOrgIT: MySQL, Keycloak, API and the web front door.
 
-Compose project: `infraorgit`. `make dev` applies migrations on startup, so the database populates itself; local volumes can be removed with `make reset`.
+Compose project: `infraorgit`. `make dev` applies migrations on startup, so the database populates itself. MySQL data lives in the bind mounts `data/mysql` and `data/mysql-keycloak` and survives `down`/`down -v`; `make reset` deletes the directory and re-runs the init scripts.
 
 ## Services
 
 | Service | Host port | Purpose |
 |---|---|---|
-| `mysql` | 127.0.0.1:3306 | application database `infraorgit` |
-| `mysql-keycloak` | 127.0.0.1:3307 | Keycloak database |
+| `mysql` | 127.0.0.1:3306 | application database `infraorgit`, initialized by `init/mysql`; data in `data/mysql` |
+| `mysql-keycloak` | 127.0.0.1:3307 | Keycloak database, data in `data/mysql-keycloak` |
 | `keycloak` | 127.0.0.1:8080 | OIDC, realm `infraorgit` |
-| `mysql-legacy` | 127.0.0.1:3308 | fake legacy dump for the Phase 7 rehearsal (`legacy` profile) |
 | `migrate` | — | one-off EF job, exits when the schema is up to date |
 | `api` | internal 8080 | non-root .NET API, read-only filesystem, `infraorgit-api` image |
 | `web` | 80/443 | SPA, API and Keycloak on one origin (`infraorgit-web` image) |
@@ -50,23 +49,23 @@ Warning: changing `keycloak/realm-infraorgit.json` does not update an already im
 
 Observability: the API emits JSON logs with a correlation id. Setting `OTEL_EXPORTER_OTLP_ENDPOINT` in `.env` enables OTLP traces and metrics; without a collector they stay disabled.
 
-## Fake legacy dump
+## Database init scripts
 
-`legacy/01-schema.sql` and `legacy/02-data.sql` create a reduced legacy schema with fake data: one environment, one provider, one machine, one proxy, one service, one diagram and one execution. It only exists to test the Phase 7 importer and contains no production data.
+`init/mysql/` is mounted at `/docker-entrypoint-initdb.d` on `mysql` and runs only on a fresh volume (`make reset`). It builds the application database `infraorgit`:
 
-The reduced schema mirrors the legacy table layout: same types, defaults, indexes and foreign keys. Only `AdminAuditEntries` and `__EFMigrationsHistory` are left out, which the importer does not read.
+| File | Content | Git |
+|---|---|---|
+| `1-InfrastructureApps.sql` | schema of every table and the `__EFMigrationsHistory` rows, so the EF `migrate` job is a no-op | versioned |
+| `2-BaseData.sql` | generic data: environments, roles, menus and role bindings | versioned |
+| `3-CustomData.sql` | installation data: providers, topology, applications, diagrams, users, groups, logs | ignored, private |
 
-```bash
-docker compose --profile legacy up -d --wait mysql-legacy
-cd ../AllInfraOrgIT && make legacy-rehearsal
-```
-
-The container has no volume: every recreation re-runs the init scripts and starts from scratch.
+The scripts are generated from the migrated database (`1-`), with data exported as `REPLACE INTO` (`2-`, `3-`). After a schema change: apply migrations, re-export `1-`; `__EFMigrationsHistory` keeps the `migrate` job aligned.
 
 ## Rules
 
 - `.env` is not committed; only `.env.example`.
-- No target schema or seed in the init SQL: the schema comes from EF migrations. `legacy/` only contains the reduced legacy schema for the rehearsal.
+- `init/mysql/1-InfrastructureApps.sql` mirrors the EF-managed schema with its history rows; new migrations are applied on top by the `migrate` job.
+- `init/mysql/3-CustomData.sql` holds installation data: ignored by git, never published.
 - Explicit image versions; digests pinned at release.
 - The realm JSON contains development credentials only, never production data.
 

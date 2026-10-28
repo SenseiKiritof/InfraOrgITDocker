@@ -12,7 +12,9 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
+      # App DB schema, base data and installation data on a fresh volume.
+      - ./init/mysql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 5s
@@ -31,7 +33,7 @@ services:
     ports:
       - "127.0.0.1:3307:3306"
     volumes:
-      - mysql-keycloak-data:/var/lib/mysql
+      - ./data/mysql-keycloak:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 5s
@@ -80,26 +82,6 @@ services:
       - default
       - auth
 
-  mysql-legacy:
-    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69
-    profiles: ["legacy"]
-    restart: "no"
-    environment:
-      MYSQL_DATABASE: infraorgit_legacy
-      MYSQL_USER: legacy
-      MYSQL_PASSWORD: ${LEGACY_DB_PASSWORD:-dev-legacy-password}
-      MYSQL_ROOT_PASSWORD: ${LEGACY_DB_ROOT_PASSWORD:-dev-legacy-root-password}
-    ports:
-      - "127.0.0.1:3308:3306"
-    volumes:
-      - ./legacy:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "mysql -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" -e 'SELECT 1 FROM infraorgit_legacy.Servers LIMIT 1' --silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-
   migrate:
     image: infraorgit-api:${API_TAG:-local}
     build:
@@ -142,6 +124,7 @@ services:
       Auth__SecureCookies: "true"
       ServerAccess__CredentialKeys__1: ${ServerAccess__CredentialKey:-}
       ServerAccess__CurrentKeyVersion: ${ServerAccess__CurrentKeyVersion:-1}
+      ENC_KEY: ${ENC_KEY:-}
       DataProtection__KeysPath: /home/app/.aspnet/DataProtection-Keys
       SessionStore__MaxSessionsPerUser: ${SESSION_MAX_PER_USER:-10}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
@@ -193,8 +176,6 @@ networks:
     internal: true
 
 volumes:
-  mysql-data:
-  mysql-keycloak-data:
   api-dp-keys:
   caddy-data:
   caddy-config:
