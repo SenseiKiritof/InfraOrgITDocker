@@ -6,12 +6,9 @@ data/
 
 # Local legacy exports, dumps and certificates (never publish)
 init/
-2-Topology.sql
-1-InfrastructureApps.sql
-2-BaseData.sql
-3-CustomData.sql
-*-BaseData.sql
-*-CustomData.sql
+*.sql
+!legacy/01-schema.sql
+!legacy/02-data.sql
 *.dump
 *.bak
 *.sql.gz
