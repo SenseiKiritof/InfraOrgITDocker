@@ -1,6 +1,6 @@
 # InfraOrgITDocker
 
-Local infra for InfraOrgIT: Docker Compose with MySQL, Keycloak and Caddy. The complete production configuration arrives in Phase 8.
+Docker Compose stack for InfraOrgIT: MySQL, Keycloak, API and the web front door.
 
 Compose project: `infraorgit`. `make dev` applies migrations on startup, so the database populates itself; local volumes can be removed with `make reset`.
 
@@ -12,11 +12,11 @@ Compose project: `infraorgit`. `make dev` applies migrations on startup, so the 
 | `mysql-keycloak` | 127.0.0.1:3307 | Keycloak database |
 | `keycloak` | 127.0.0.1:8080 | OIDC, realm `infraorgit` |
 | `mysql-legacy` | 127.0.0.1:3308 | fake legacy dump for the Phase 7 rehearsal (`legacy` profile) |
-| `migrate` | — | one-off EF job, exits when the schema is up to date (`full` profile) |
-| `api` | internal 8080 | non-root .NET API, read-only filesystem (`full` profile), `infraorgit-api` image |
-| `caddy` | 80/443 | SPA + API reverse proxy (`full` profile) |
+| `migrate` | — | one-off EF job, exits when the schema is up to date |
+| `api` | internal 8080 | non-root .NET API, read-only filesystem, `infraorgit-api` image |
+| `web` | 80/443 | SPA, API and Keycloak on one origin (`infraorgit-web` image) |
 
-Ports are bound to loopback: the infra is not reachable from the LAN. MySQL and Keycloak are configured for development; production arrives in Phase 8.
+MySQL and Keycloak are bound to loopback; the `web` front door listens on 80/443. Development credentials only; in production use a secret manager.
 
 ## Start
 
@@ -31,18 +31,20 @@ If you change the realm, the client or the secret, `--import-realm` does not upd
 
 Keycloak console: http://localhost:8080/admin with the admin credentials in `.env`.
 
-Full profile with API, migration job and Caddy:
+Whole stack in one compose file:
 
 ```bash
-# from the meta repo: frontend build, credential key from env.sh, then compose
+# from this directory: builds API and web images, applies migrations, starts everything
+docker compose up -d --build --wait
+# or from the meta repo (stop `make dev` first: API and Vite share the host ports)
 make full
 ```
 
-Caddy serves `dist/` and forwards `/api/*` and `/auth/*` to `API_UPSTREAM` (default `api:8080`), `/realms/*` and `/resources/*` to Keycloak. The API runs as user `app` with a read-only root filesystem, `cap_drop: ALL` and `no-new-privileges`; the `migrate` job applies migrations and exits before the API starts. Sessions live in MySQL (`Sessions` table, encrypted payload) and DataProtection keys in the `api-dp-keys` volume: restarting the API does not lose the login.
+The `web` image serves the SPA and forwards `/api/*` and `/auth/*` to `API_UPSTREAM` (default `api:8080`), `/realms/*` and `/resources/*` to `KEYCLOAK_UPSTREAM` (default `keycloak:8080`). The API runs as user `app` with a read-only root filesystem, `cap_drop: ALL` and `no-new-privileges`; the `migrate` job applies migrations and exits before the API starts. Sessions live in MySQL (`Sessions` table, encrypted payload) and DataProtection keys in the `api-dp-keys` volume: restarting the API does not lose the login.
 
-Keycloak in the `full` profile uses `start` (not `start-dev`) with `KC_HOSTNAME=https://localhost`, proxy headers and dynamic backchannel: the public issuer is `https://localhost/realms/infraorgit`, while the API reaches discovery, tokens and JWKS on `http://keycloak:8080` (`Oidc__InternalIssuer`, `Oidc__AllowInsecureInternalDiscovery=true`). API and Keycloak share the isolated `auth` network (`internal: true`), so the other containers do not see the OIDC traffic; it is still internal HTTP, so compromising either container still exposes the tokens.
+The full stack runs Keycloak with `start` (not `start-dev`) and `KC_HOSTNAME=https://localhost`, proxy headers and dynamic backchannel (`KC_MODE=prod`, the default); `make dev` passes `KC_MODE=dev`: the public issuer is `https://localhost/realms/infraorgit`, while the API reaches discovery, tokens and JWKS on `http://keycloak:8080` (`Oidc__InternalIssuer`, `Oidc__AllowInsecureInternalDiscovery=true`). API and Keycloak share the isolated `auth` network (`internal: true`), so the other containers do not see the OIDC traffic; it is still internal HTTP, so compromising either container still exposes the tokens.
 
-For a real host you need `SITE_ADDRESS`, `SITE_URL`, `OIDC_ISSUER`, `OIDC_INTERNAL_ISSUER`, `OIDC_REDIRECT_URI` and `FRONTEND_BASE_URL` consistent with each other, plus updated Keycloak client redirect URIs. The current redirects only cover `http://localhost:3000` and `https://localhost`.
+For a real host you need `SITE_ADDRESS`, `SITE_URL`, `OIDC_ISSUER`, `OIDC_INTERNAL_ISSUER`, `OIDC_REDIRECT_URI` and `FRONTEND_BASE_URL` consistent with each other, plus updated Keycloak client redirect URIs. The current redirects only cover `http://localhost:3000` and `https://localhost`. `WEB_TAG` selects the published web image instead of a local build, like `API_TAG` for the API.
 
 Warning: changing `keycloak/realm-infraorgit.json` does not update an already imported realm. You need a new Keycloak volume (`make reset`, which also removes the application data) or updating the client from the console.
 

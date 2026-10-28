@@ -7,6 +7,6 @@ Read `../AllInfraOrgIT/README.md` and `../AllInfraOrgIT/docs/backlog.md`.
 - Secrets only in a local `.env` or a secret manager; version only `.env.example` with fake values.
 - No dumps, representative data, Keycloak keys or `data/` in the repo.
 - The database schema is not written here: EF migrations in the backend.
-- Keycloak in dev uses `start-dev` with the `infraorgit` realm import; the production configuration is added in Phase 8.
+- One Compose file for the whole stack; Keycloak runs `start-dev` for `make dev` (`KC_MODE=dev`) and `start` for the full stack (`KC_MODE=prod`, default).
 - The realm JSON and `.env.example` contain development credentials only; never production data.
-- Every change to Compose or the Caddyfile must pass `docker compose config -q` and `caddy validate`.
+- Every change to Compose must pass `docker compose config -q`; the web Caddyfile lives in `../InfraOrgITWeb`.
