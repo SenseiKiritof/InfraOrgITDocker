@@ -24,7 +24,7 @@ cp .env.example .env
 docker compose up -d --wait mysql mysql-keycloak keycloak
 ```
 
-Keycloak imports `keycloak/realm-infraorgit.json`: client `infraorgit`, test user `admin` / `dev-admin`. Development-only credentials, never in production.
+Keycloak imports `keycloak/realm-infraorgit.json`: client `infraorgit`, test user `admin` / `dev-admin`, `SystemAdmin` in the app through `init/mysql/2-BaseData.sql`. Development-only credentials, never in production.
 
 If you change the realm, the client or the secret, `--import-realm` does not update an existing realm. Use `make reset` from the meta repo (removes the volumes) and restart.
 
@@ -56,7 +56,7 @@ Observability: the API emits JSON logs with a correlation id. Setting `OTEL_EXPO
 | File | Content | Git |
 |---|---|---|
 | `1-InfrastructureApps.sql` | schema of every table and the `__EFMigrationsHistory` rows, so the EF `migrate` job is a no-op | versioned |
-| `2-BaseData.sql` | generic data: environments, roles, menus and role bindings | versioned |
+| `2-BaseData.sql` | generic data: environments, roles, menus, role bindings and the realm test user `admin` as `SystemAdmin` (Id `-1`, so `3-CustomData.sql` cannot reuse it) | versioned |
 | `3-CustomData.sql` | installation data: providers, topology, applications, diagrams, users, groups, logs | ignored, private |
 
 The scripts are generated from the migrated database (`1-`), with data exported as `REPLACE INTO` (`2-`, `3-`). After a schema change: apply migrations, re-export `1-`; `__EFMigrationsHistory` keeps the `migrate` job aligned.

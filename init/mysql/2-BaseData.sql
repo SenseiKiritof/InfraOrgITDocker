@@ -35,6 +35,20 @@ LOCK TABLES `MenuRole` WRITE;
 REPLACE INTO `MenuRole` (`MenuId`, `RolesId`) VALUES (13,3),(14,3),(15,3),(16,3),(19,3),(20,3),(21,3),(22,3);
 /*!40000 ALTER TABLE `MenuRole` ENABLE KEYS */;
 UNLOCK TABLES;
+
+-- Development user of keycloak/realm-infraorgit.json, SystemAdmin on a fresh volume. Negative Id: AUTO_INCREMENT
+-- never produces it, so the REPLACE of 3-CustomData.sql cannot hand the role over to a different user.
+LOCK TABLES `Users` WRITE;
+/*!40000 ALTER TABLE `Users` DISABLE KEYS */;
+REPLACE INTO `Users` (`Id`, `Name`, `Surname`, `Username`, `CreatedAt`, `UpdatedAt`, `Version`) VALUES (-1,'Dev','Admin','admin','2026-10-25 00:00:00.000000','2026-10-25 00:00:00.000000',0);
+/*!40000 ALTER TABLE `Users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+LOCK TABLES `RoleUser` WRITE;
+/*!40000 ALTER TABLE `RoleUser` DISABLE KEYS */;
+REPLACE INTO `RoleUser` (`RolesId`, `UsersId`) VALUES (3,-1);
+/*!40000 ALTER TABLE `RoleUser` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
