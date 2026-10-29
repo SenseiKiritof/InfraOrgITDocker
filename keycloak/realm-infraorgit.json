@@ -24,12 +24,12 @@
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "http://localhost:3000/auth/callback",
-        "https://localhost/auth/callback"
+        "https://localhost:8443/auth/callback"
       ],
-      "webOrigins": ["http://localhost:3000", "https://localhost"],
+      "webOrigins": ["http://localhost:3000", "https://localhost:8443"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*##https://localhost/*"
+        "post.logout.redirect.uris": "http://localhost:3000/*##https://localhost:8443/*"
       },
       "protocolMappers": [
         {

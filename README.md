@@ -8,14 +8,14 @@ Compose project: `infraorgit`. `make dev` applies migrations on startup, so the 
 
 | Service | Host port | Purpose |
 |---|---|---|
-| `mysql` | 127.0.0.1:3306 | application database `infraorgit`, initialized by `init/mysql`; data in `data/mysql` |
-| `mysql-keycloak` | 127.0.0.1:3307 | Keycloak database, data in `data/mysql-keycloak` |
-| `keycloak` | 127.0.0.1:8080 | OIDC, realm `infraorgit` |
+| `mysql` | 127.0.0.1:13336 | application database `infraorgit`, initialized by `init/mysql`; data in `data/mysql` |
+| `mysql-keycloak` | 127.0.0.1:13337 | Keycloak database, data in `data/mysql-keycloak` |
+| `keycloak` | 127.0.0.1:18081 | OIDC, realm `infraorgit` |
 | `migrate` | — | one-off EF job, exits when the schema is up to date |
 | `api` | internal 8080 | non-root .NET API, read-only filesystem, `infraorgit-api` image |
-| `web` | 80/443 | SPA, API and Keycloak on one origin (`infraorgit-web` image) |
+| `web` | 8443 | SPA, API and Keycloak on one origin (`infraorgit-web` image) |
 
-MySQL and Keycloak are bound to loopback; the `web` front door listens on 80/443. Development credentials only; in production use a secret manager.
+MySQL and Keycloak are bound to loopback; the `web` front door listens on 8443. Development credentials only; in production use a secret manager.
 
 ## Start
 
@@ -28,7 +28,7 @@ Keycloak imports `keycloak/realm-infraorgit.json`: client `infraorgit`, test use
 
 If you change the realm, the client or the secret, `--import-realm` does not update an existing realm. Use `make reset` from the meta repo (removes the volumes) and restart.
 
-Keycloak console: http://localhost:8080/admin with the admin credentials in `.env`.
+Keycloak console: http://localhost:18081/admin (admin hostname) with the admin credentials in `.env`.
 
 Whole stack in one compose file:
 
@@ -41,9 +41,9 @@ make full
 
 The `web` image serves the SPA and forwards `/api/*` and `/auth/*` to `API_UPSTREAM` (default `api:8080`), `/realms/*` and `/resources/*` to `KEYCLOAK_UPSTREAM` (default `keycloak:8080`). The API runs as user `app` with a read-only root filesystem, `cap_drop: ALL` and `no-new-privileges`; the `migrate` job applies migrations and exits before the API starts. Sessions live in MySQL (`Sessions` table, encrypted payload) and DataProtection keys in the `api-dp-keys` volume: restarting the API does not lose the login.
 
-The full stack runs Keycloak with `start` (not `start-dev`) and `KC_HOSTNAME=https://localhost`, proxy headers and dynamic backchannel (`KC_MODE=prod`, the default); `make dev` passes `KC_MODE=dev`: the public issuer is `https://localhost/realms/infraorgit`, while the API reaches discovery, tokens and JWKS on `http://keycloak:8080` (`Oidc__InternalIssuer`, `Oidc__AllowInsecureInternalDiscovery=true`). API and Keycloak share the isolated `auth` network (`internal: true`), so the other containers do not see the OIDC traffic; it is still internal HTTP, so compromising either container still exposes the tokens.
+The full stack runs Keycloak with `start` (not `start-dev`) and `KC_HOSTNAME=https://localhost:8443`, proxy headers and dynamic backchannel (`KC_MODE=prod`, the default); `make dev` passes `KC_MODE=dev`: the public issuer is `https://localhost:8443/realms/infraorgit`, while the API reaches discovery, tokens and JWKS on `http://keycloak:8080` (`Oidc__InternalIssuer`, `Oidc__AllowInsecureInternalDiscovery=true`). API and Keycloak share the isolated `auth` network (`internal: true`), so the other containers do not see the OIDC traffic; it is still internal HTTP, so compromising either container still exposes the tokens.
 
-For a real host you need `SITE_ADDRESS`, `SITE_URL`, `OIDC_ISSUER`, `OIDC_INTERNAL_ISSUER`, `OIDC_REDIRECT_URI` and `FRONTEND_BASE_URL` consistent with each other, plus updated Keycloak client redirect URIs. The current redirects only cover `http://localhost:3000` and `https://localhost`. `WEB_TAG` selects the published web image instead of a local build, like `API_TAG` for the API.
+For a real host you need `SITE_ADDRESS`, `SITE_URL`, `KEYCLOAK_HOSTNAME_ADMIN`, `OIDC_ISSUER`, `OIDC_INTERNAL_ISSUER`, `OIDC_REDIRECT_URI` and `FRONTEND_BASE_URL` consistent with each other, plus updated Keycloak client redirect URIs. The current redirects cover `http://localhost:3000` and `https://localhost:8443`. `WEB_TAG` selects the published web image instead of a local build, like `API_TAG` for the API.
 
 Warning: changing `keycloak/realm-infraorgit.json` does not update an already imported realm. You need a new Keycloak volume (`make reset`, which also removes the application data) or updating the client from the console.
 

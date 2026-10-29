@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?definisci MYSQL_PASSWORD in .env}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?definisci MYSQL_ROOT_PASSWORD in .env}
     ports:
-      - "127.0.0.1:3306:3306"
+      - "127.0.0.1:13336:3306"
     volumes:
       - ./data/mysql:/var/lib/mysql
       # App DB schema, base data and installation data on a fresh volume.
@@ -31,7 +31,7 @@ services:
       MYSQL_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?definisci KEYCLOAK_DB_PASSWORD in .env}
       MYSQL_ROOT_PASSWORD: ${KEYCLOAK_DB_ROOT_PASSWORD:?definisci KEYCLOAK_DB_ROOT_PASSWORD in .env}
     ports:
-      - "127.0.0.1:3307:3306"
+      - "127.0.0.1:13337:3306"
     volumes:
       - ./data/mysql-keycloak:/var/lib/mysql
     healthcheck:
@@ -50,13 +50,15 @@ services:
         if [ "$${KC_MODE:-prod}" = "dev" ]; then
           exec /opt/keycloak/bin/kc.sh start-dev --import-realm
         fi
-        export KC_HOSTNAME="$${KEYCLOAK_HOSTNAME:-https://localhost}"
+        export KC_HOSTNAME="$${KEYCLOAK_HOSTNAME:-https://localhost:8443}"
+        export KC_HOSTNAME_ADMIN="$${KEYCLOAK_HOSTNAME_ADMIN:-http://localhost:18081}"
         export KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
         export KC_PROXY_HEADERS=xforwarded
         exec /opt/keycloak/bin/kc.sh start --import-realm
     environment:
       KC_MODE: ${KC_MODE:-prod}
-      KEYCLOAK_HOSTNAME: ${SITE_URL:-https://localhost}
+      KEYCLOAK_HOSTNAME: ${SITE_URL:-https://localhost:8443}
+      KEYCLOAK_HOSTNAME_ADMIN: ${KEYCLOAK_HOSTNAME_ADMIN:-http://localhost:18081}
       KC_DB: mysql
       KC_DB_URL: jdbc:mysql://mysql-keycloak:3306/keycloak
       KC_DB_USERNAME: keycloak
@@ -66,7 +68,7 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_ENABLED: "true"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:18081:8080"
     volumes:
       - ./keycloak/realm-infraorgit.json:/opt/keycloak/data/import/realm.json:ro
     healthcheck:
@@ -114,13 +116,13 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__MySql: "Server=mysql;Port=3306;Database=infraorgit;User ID=infraorgit;Password=${MYSQL_PASSWORD};"
-      Oidc__Issuer: ${OIDC_ISSUER:-https://localhost/realms/infraorgit}
+      Oidc__Issuer: ${OIDC_ISSUER:-https://localhost:8443/realms/infraorgit}
       Oidc__InternalIssuer: ${OIDC_INTERNAL_ISSUER:-http://keycloak:8080/realms/infraorgit}
       Oidc__AllowInsecureInternalDiscovery: "true"
       Oidc__ClientId: ${OIDC_CLIENT_ID:-infraorgit}
       Oidc__ClientSecret: ${Oidc__ClientSecret:?definisci Oidc__ClientSecret in .env}
-      Oidc__RedirectUri: ${OIDC_REDIRECT_URI:-https://localhost/auth/callback}
-      Frontend__BaseUrl: ${FRONTEND_BASE_URL:-https://localhost}
+      Oidc__RedirectUri: ${OIDC_REDIRECT_URI:-https://localhost:8443/auth/callback}
+      Frontend__BaseUrl: ${FRONTEND_BASE_URL:-https://localhost:8443}
       Auth__SecureCookies: "true"
       ServerAccess__CredentialKeys__1: ${ServerAccess__CredentialKey:-}
       ServerAccess__CurrentKeyVersion: ${ServerAccess__CurrentKeyVersion:-1}
@@ -159,9 +161,7 @@ services:
       API_UPSTREAM: ${API_UPSTREAM:-api:8080}
       KEYCLOAK_UPSTREAM: ${KEYCLOAK_UPSTREAM:-keycloak:8080}
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "8443:443"
     volumes:
       - caddy-data:/data
       - caddy-config:/config
