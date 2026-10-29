@@ -39,13 +39,13 @@ UNLOCK TABLES;
 
 LOCK TABLES `Users` WRITE;
 /*!40000 ALTER TABLE `Users` DISABLE KEYS */;
-REPLACE INTO `Users` (`Id`, `Name`, `Surname`, `Username`, `CreatedAt`, `UpdatedAt`, `Version`) VALUES (-1,'Dev','Admin','admin','2026-10-25 00:00:00.000000','2026-10-25 00:00:00.000000',0),(5,'Sensei','Kiritof','senseikiritof','2026-10-28 14:00:19.911489','2026-10-28 14:00:19.911489',0);
+REPLACE INTO `Users` (`Id`, `Name`, `Surname`, `Username`, `CreatedAt`, `UpdatedAt`, `Version`) VALUES (-1,'Dev','Admin','admin','2026-10-25 00:00:00.000000','2026-10-25 00:00:00.000000',0);
 /*!40000 ALTER TABLE `Users` ENABLE KEYS */;
 UNLOCK TABLES;
 
 LOCK TABLES `RoleUser` WRITE;
 /*!40000 ALTER TABLE `RoleUser` DISABLE KEYS */;
-REPLACE INTO `RoleUser` (`RolesId`, `UsersId`) VALUES (3,-1),(3,5);
+REPLACE INTO `RoleUser` (`RolesId`, `UsersId`) VALUES (3,-1);
 /*!40000 ALTER TABLE `RoleUser` ENABLE KEYS */;
 UNLOCK TABLES;
 
