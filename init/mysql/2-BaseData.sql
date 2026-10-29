@@ -1,4 +1,4 @@
--- 2-BaseData.sql: generic data shared by every installation: environments, roles, menus and the development admin user.
+-- 2-BaseData.sql: generic data shared by every installation: environments, roles, menus, the development admin user and their translations.
 USE `infraorgit`;
 
 
@@ -37,8 +37,6 @@ REPLACE INTO `MenuRole` (`MenuId`, `RolesId`) VALUES (13,3),(14,3),(15,3),(16,3)
 /*!40000 ALTER TABLE `MenuRole` ENABLE KEYS */;
 UNLOCK TABLES;
 
--- Development user of keycloak/realm-infraorgit.json, SystemAdmin on a fresh volume. Negative Id: AUTO_INCREMENT
--- never produces it, so the REPLACE of 3-CustomData.sql cannot hand the role over to a different user.
 LOCK TABLES `Users` WRITE;
 /*!40000 ALTER TABLE `Users` DISABLE KEYS */;
 REPLACE INTO `Users` (`Id`, `Name`, `Surname`, `Username`, `CreatedAt`, `UpdatedAt`, `Version`) VALUES (-1,'Dev','Admin','admin','2026-10-25 00:00:00.000000','2026-10-25 00:00:00.000000',0),(5,'Sensei','Kiritof','senseikiritof','2026-10-28 14:00:19.911489','2026-10-28 14:00:19.911489',0);
@@ -49,6 +47,12 @@ LOCK TABLES `RoleUser` WRITE;
 /*!40000 ALTER TABLE `RoleUser` DISABLE KEYS */;
 REPLACE INTO `RoleUser` (`RolesId`, `UsersId`) VALUES (3,-1),(3,5);
 /*!40000 ALTER TABLE `RoleUser` ENABLE KEYS */;
+UNLOCK TABLES;
+
+LOCK TABLES `Translations` WRITE;
+/*!40000 ALTER TABLE `Translations` DISABLE KEYS */;
+REPLACE INTO `Translations` (`Id`, `EntityType`, `EntityId`, `Field`, `Language`, `Value`, `CreatedAt`, `UpdatedAt`, `Version`) VALUES (1,'Menu',1,'Name','en','Home','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(2,'Menu',2,'Name','en','Environments','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(3,'Menu',3,'Name','en','Applications','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(4,'Menu',4,'Name','en','Providers','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(5,'Menu',5,'Name','en','Servers','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(6,'Menu',6,'Name','en','Environment {name}','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(7,'Menu',7,'Name','en','Application {name}','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(8,'Menu',8,'Name','en','Server {name}','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(9,'Menu',9,'Name','en','Provider {name}','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(10,'Menu',10,'Name','en','Diagrams','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(11,'Menu',12,'Name','en','Projects','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(12,'Menu',13,'Name','en','Users','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(13,'Menu',14,'Name','en','Groups','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(14,'Menu',15,'Name','en','Roles','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(15,'Menu',16,'Name','en','Menu','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(16,'Menu',18,'Name','en','Project {name}','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(17,'Menu',19,'Name','en','Credentials','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(18,'Menu',20,'Name','en','Commands','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(19,'Menu',21,'Name','en','Network tests','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(20,'Menu',22,'Name','en','Execution log','2026-10-29 10:59:55.610516','2026-10-29 10:59:55.610516',0),(32,'Role',1,'Label','en','Server administrator','2026-10-29 10:59:55.614861','2026-10-29 10:59:55.614861',0),(33,'Role',2,'Label','en','Server operator','2026-10-29 10:59:55.614861','2026-10-29 10:59:55.614861',0),(34,'Role',3,'Label','en','System administrator','2026-10-29 10:59:55.614861','2026-10-29 10:59:55.614861',0);
+/*!40000 ALTER TABLE `Translations` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
