@@ -21,6 +21,25 @@ CREATE TABLE `__EFMigrationsHistory` (
   PRIMARY KEY (`MigrationId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ApiTokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ApiTokens` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `UserId` int NOT NULL,
+  `Name` varchar(200) NOT NULL,
+  `TokenHash` varchar(64) NOT NULL,
+  `Scopes` varchar(500) NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `ExpiresAt` datetime(6) DEFAULT NULL,
+  `LastUsedAt` datetime(6) DEFAULT NULL,
+  `RevokedAt` datetime(6) DEFAULT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_ApiTokens_TokenHash` (`TokenHash`),
+  KEY `IX_ApiTokens_UserId` (`UserId`),
+  CONSTRAINT `FK_ApiTokens_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ApplicationActions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -95,7 +114,7 @@ CREATE TABLE `ApplicationApiKeys` (
   CONSTRAINT `FK_ApplicationApiKeys_Applications_ApplicationId` FOREIGN KEY (`ApplicationId`) REFERENCES `Applications` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_ApplicationApiKeys_EnvironmentDefinitions_EnvironmentDefinit~` FOREIGN KEY (`EnvironmentDefinitionId`) REFERENCES `EnvironmentDefinitions` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `CK_ApplicationApiKeys_Location` CHECK ((`Location` in (_utf8mb4'Header',_utf8mb4'Query')))
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ApplicationApiQueryParams`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -112,7 +131,7 @@ CREATE TABLE `ApplicationApiQueryParams` (
   KEY `IX_ApplicationApiQueryParams_ApplicationApiId` (`ApplicationApiId`),
   CONSTRAINT `FK_ApplicationApiQueryParams_ApplicationVersionApis_Application~` FOREIGN KEY (`ApplicationApiId`) REFERENCES `ApplicationVersionApis` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `CK_ApplicationApiQueryParams_ParamType` CHECK ((`ParamType` in (_utf8mb4'Int',_utf8mb4'String',_utf8mb4'Bool',_utf8mb4'DateTime',_utf8mb4'Double',_utf8mb4'Decimal')))
-) ENGINE=InnoDB AUTO_INCREMENT=424 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1240 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ApplicationEnvironments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -161,7 +180,7 @@ CREATE TABLE `Applications` (
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_Applications_Name` (`Name`),
   CONSTRAINT `CK_Applications_Type` CHECK ((`Type` in (_utf8mb4'Backend',_utf8mb4'Frontend',_utf8mb4'Sftp',_utf8mb4'RabbitMq',_utf8mb4'Nginx',_utf8mb4'Elastic',_utf8mb4'Kibana',_utf8mb4'Kafka',_utf8mb4'MySql',_utf8mb4'MongoDb',_utf8mb4'Redis')))
-) ENGINE=InnoDB AUTO_INCREMENT=183 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=214 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ApplicationVersionApis`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -180,7 +199,7 @@ CREATE TABLE `ApplicationVersionApis` (
   KEY `IX_ApplicationVersionApis_ApplicationVersionId` (`ApplicationVersionId`),
   CONSTRAINT `FK_ApplicationVersionApis_ApplicationVersions_ApplicationVersio~` FOREIGN KEY (`ApplicationVersionId`) REFERENCES `ApplicationVersions` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `CK_ApplicationVersionApis_RequestTypeEnum` CHECK ((`RequestTypeEnum` in (_utf8mb4'GET',_utf8mb4'POST',_utf8mb4'PUT',_utf8mb4'PATCH',_utf8mb4'DELETE')))
-) ENGINE=InnoDB AUTO_INCREMENT=715 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2153 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ApplicationVersions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -195,7 +214,37 @@ CREATE TABLE `ApplicationVersions` (
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_ApplicationVersions_ApplicationId_VersionNumber` (`ApplicationId`,`VersionNumber`),
   CONSTRAINT `FK_ApplicationVersions_Applications_ApplicationId` FOREIGN KEY (`ApplicationId`) REFERENCES `Applications` (`Id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=180 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=210 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `AuditEvents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `AuditEvents` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `OccurredAt` datetime(6) NOT NULL,
+  `Kind` varchar(30) NOT NULL,
+  `ActorUserId` int DEFAULT NULL,
+  `ActorUsername` varchar(100) NOT NULL,
+  `ClientId` varchar(100) DEFAULT NULL,
+  `Action` varchar(100) NOT NULL,
+  `TargetType` varchar(30) DEFAULT NULL,
+  `TargetId` int DEFAULT NULL,
+  `ServerId` int DEFAULT NULL,
+  `TargetHost` varchar(300) DEFAULT NULL,
+  `TargetPort` int DEFAULT NULL,
+  `LocalPort` int DEFAULT NULL,
+  `Outcome` varchar(20) NOT NULL,
+  `ErrorCode` varchar(100) DEFAULT NULL,
+  `DurationMs` int NOT NULL,
+  `CorrelationId` varchar(100) DEFAULT NULL,
+  `DetailJson` longtext,
+  PRIMARY KEY (`Id`),
+  KEY `IX_AuditEvents_ActorUsername_OccurredAt` (`ActorUsername`,`OccurredAt`),
+  KEY `IX_AuditEvents_Kind_OccurredAt` (`Kind`,`OccurredAt`),
+  KEY `IX_AuditEvents_OccurredAt` (`OccurredAt`),
+  CONSTRAINT `CK_AuditEvents_Kind` CHECK ((`Kind` in (_utf8mb4'McpToolCall',_utf8mb4'TunnelStart',_utf8mb4'TunnelStop',_utf8mb4'TunnelError'))),
+  CONSTRAINT `CK_AuditEvents_Outcome` CHECK ((`Outcome` in (_utf8mb4'Ok',_utf8mb4'Error',_utf8mb4'Denied')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `CommandExecutions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -218,7 +267,7 @@ CREATE TABLE `CommandExecutions` (
   KEY `IX_CommandExecutions_ServerId` (`ServerId`),
   KEY `IX_CommandExecutions_StartedAt` (`StartedAt`),
   CONSTRAINT `CK_CommandExecutions_Kind` CHECK ((`Kind` in (_utf8mb4'Action',_utf8mb4'Reachability',_utf8mb4'Console')))
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `CommandTemplates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -233,7 +282,7 @@ CREATE TABLE `CommandTemplates` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_CommandTemplates_Name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `DiagramEdges`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -255,7 +304,7 @@ CREATE TABLE `DiagramEdges` (
   UNIQUE KEY `IX_DiagramEdges_DiagramId_ProxyConnectionId_TargetNodeType_Targ~` (`DiagramId`,`ProxyConnectionId`,`TargetNodeType`,`TargetEntityId`),
   CONSTRAINT `FK_DiagramEdges_Diagrams_DiagramId` FOREIGN KEY (`DiagramId`) REFERENCES `Diagrams` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `CK_DiagramEdges_TargetNodeType` CHECK ((`TargetNodeType` in (_utf8mb4'Provider',_utf8mb4'ProviderEnvironment',_utf8mb4'Server',_utf8mb4'ServerApplication')))
-) ENGINE=InnoDB AUTO_INCREMENT=1157 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2249 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `DiagramNodes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -277,7 +326,7 @@ CREATE TABLE `DiagramNodes` (
   UNIQUE KEY `IX_DiagramNodes_DiagramId_NodeType_EntityId` (`DiagramId`,`NodeType`,`EntityId`),
   CONSTRAINT `FK_DiagramNodes_Diagrams_DiagramId` FOREIGN KEY (`DiagramId`) REFERENCES `Diagrams` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `CK_DiagramNodes_NodeType` CHECK ((`NodeType` in (_utf8mb4'Provider',_utf8mb4'ProviderEnvironment',_utf8mb4'Server',_utf8mb4'ServerApplication')))
-) ENGINE=InnoDB AUTO_INCREMENT=3179 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5789 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Diagrams`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -291,7 +340,7 @@ CREATE TABLE `Diagrams` (
   `UpdatedAt` datetime(6) NOT NULL,
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `DiagramScopeItems`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -322,7 +371,7 @@ CREATE TABLE `EnvironmentDefinitions` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_EnvironmentDefinitions_Name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Groups`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -335,7 +384,7 @@ CREATE TABLE `Groups` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_Groups_Name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `GroupUser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -379,7 +428,7 @@ CREATE TABLE `Menus` (
   PRIMARY KEY (`Id`),
   KEY `IX_Menus_ParentId` (`ParentId`),
   CONSTRAINT `FK_Menus_Menus_ParentId` FOREIGN KEY (`ParentId`) REFERENCES `Menus` (`Id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Projects`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -393,7 +442,7 @@ CREATE TABLE `Projects` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_Projects_Name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ProviderEnvironmentGroupRoles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -430,7 +479,7 @@ CREATE TABLE `ProviderEnvironments` (
   KEY `IX_ProviderEnvironments_EnvironmentDefinitionId` (`EnvironmentDefinitionId`),
   CONSTRAINT `FK_ProviderEnvironments_EnvironmentDefinitions_EnvironmentDefin~` FOREIGN KEY (`EnvironmentDefinitionId`) REFERENCES `EnvironmentDefinitions` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_ProviderEnvironments_Providers_ProviderId` FOREIGN KEY (`ProviderId`) REFERENCES `Providers` (`Id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Providers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -443,7 +492,7 @@ CREATE TABLE `Providers` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_Providers_Name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ProxyConnections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -487,7 +536,7 @@ CREATE TABLE `ProxyRoutes` (
   CONSTRAINT `FK_ProxyRoutes_ProxyConnections_ProxyConnectionId` FOREIGN KEY (`ProxyConnectionId`) REFERENCES `ProxyConnections` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_ProxyRoutes_ProxyConnections_TargetProxyConnectionId` FOREIGN KEY (`TargetProxyConnectionId`) REFERENCES `ProxyConnections` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_ProxyRoutes_ServerApplications_TargetServerApplicationId` FOREIGN KEY (`TargetServerApplicationId`) REFERENCES `ServerApplications` (`Id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=236 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=283 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ReachabilityTests`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -505,7 +554,7 @@ CREATE TABLE `ReachabilityTests` (
   KEY `IX_ReachabilityTests_ServerId` (`ServerId`),
   CONSTRAINT `FK_ReachabilityTests_Servers_ServerId` FOREIGN KEY (`ServerId`) REFERENCES `Servers` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `CK_ReachabilityTests_Port` CHECK ((`Port` between 1 and 65535))
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=355 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -520,7 +569,7 @@ CREATE TABLE `Roles` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_Roles_Name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `RoleUser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -561,7 +610,7 @@ CREATE TABLE `ServerApplications` (
   CONSTRAINT `FK_ServerApplications_Servers_ServerId` FOREIGN KEY (`ServerId`) REFERENCES `Servers` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `CK_ServerApplications_HaRole` CHECK ((`HaRole` in (_utf8mb4'Primary',_utf8mb4'Secondary'))),
   CONSTRAINT `CK_ServerApplications_Runtime` CHECK ((`Runtime` in (_utf8mb4'Container',_utf8mb4'Native')))
-) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=296 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ServerCredentials`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -581,7 +630,7 @@ CREATE TABLE `ServerCredentials` (
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_ServerCredentials_Name` (`Name`),
   CONSTRAINT `CK_ServerCredentials_AuthType` CHECK ((`AuthType` in (_utf8mb4'Password',_utf8mb4'PrivateKey')))
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Servers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -606,20 +655,20 @@ CREATE TABLE `Servers` (
   `MemoryGb` int DEFAULT NULL,
   `OperatingSystem` varchar(100) DEFAULT NULL,
   `PublicIpAddress` varchar(45) DEFAULT NULL,
-  `FileTransferProtocol` varchar(10) DEFAULT NULL,
-  `FileTransferPort` int DEFAULT NULL,
   `FileTransferCredentialId` int DEFAULT NULL,
+  `FileTransferPort` int DEFAULT NULL,
+  `FileTransferProtocol` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `IX_Servers_ProviderEnvironmentId` (`ProviderEnvironmentId`),
   KEY `IX_Servers_CredentialId` (`CredentialId`),
-  KEY `IX_Servers_FileTransferCredentialId` (`FileTransferCredentialId`),
   KEY `IX_Servers_JumpServerId` (`JumpServerId`),
-  CONSTRAINT `CK_Servers_FileTransferProtocol` CHECK ((`FileTransferProtocol` is null or `FileTransferProtocol` in (_utf8mb4'Sftp',_utf8mb4'Ftp'))),
+  KEY `IX_Servers_FileTransferCredentialId` (`FileTransferCredentialId`),
   CONSTRAINT `FK_Servers_ProviderEnvironments_ProviderEnvironmentId` FOREIGN KEY (`ProviderEnvironmentId`) REFERENCES `ProviderEnvironments` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_Servers_ServerCredentials_CredentialId` FOREIGN KEY (`CredentialId`) REFERENCES `ServerCredentials` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_Servers_ServerCredentials_FileTransferCredentialId` FOREIGN KEY (`FileTransferCredentialId`) REFERENCES `ServerCredentials` (`Id`) ON DELETE RESTRICT,
-  CONSTRAINT `FK_Servers_Servers_JumpServerId` FOREIGN KEY (`JumpServerId`) REFERENCES `Servers` (`Id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_Servers_Servers_JumpServerId` FOREIGN KEY (`JumpServerId`) REFERENCES `Servers` (`Id`) ON DELETE RESTRICT,
+  CONSTRAINT `CK_Servers_FileTransferProtocol` CHECK (((`FileTransferProtocol` is null) or (`FileTransferProtocol` in (_utf8mb4'Sftp',_utf8mb4'Ftp'))))
+) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -665,7 +714,7 @@ CREATE TABLE `Users` (
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_Users_Username` (`Username`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -691,7 +740,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
