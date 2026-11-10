@@ -132,10 +132,11 @@
       "defaultClientScopes": [
         "profile",
         "email",
-        "mcp:read",
-        "mcp:operate"
+        "mcp:read"
       ],
-      "optionalClientScopes": []
+      "optionalClientScopes": [
+        "mcp:operate"
+      ]
     }
   ],
   "users": [
