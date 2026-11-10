@@ -417,6 +417,14 @@
         "include.in.token.scope": "true",
         "display.on.consent.screen": "false"
       }
+    },
+    {
+      "name": "tunnels:operate",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     }
   ],
   "clients": [
@@ -495,7 +503,9 @@
         "mcp:read",
         "mcp:operate"
       ],
-      "optionalClientScopes": []
+      "optionalClientScopes": [
+        "tunnels:operate"
+      ]
     },
     {
       "clientId": "infraorgit-mcp-desktop",
@@ -532,7 +542,8 @@
         "mcp:read"
       ],
       "optionalClientScopes": [
-        "mcp:operate"
+        "mcp:operate",
+        "tunnels:operate"
       ]
     }
   ],
