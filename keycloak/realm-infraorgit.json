@@ -12,6 +12,24 @@
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 28800,
+  "clientScopes": [
+    {
+      "name": "mcp:read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "mcp:operate",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    }
+  ],
   "clients": [
     {
       "clientId": "infraorgit",
@@ -26,7 +44,10 @@
         "http://localhost:3000/auth/callback",
         "https://localhost:8443/auth/callback"
       ],
-      "webOrigins": ["http://localhost:3000", "https://localhost:8443"],
+      "webOrigins": [
+        "http://localhost:3000",
+        "https://localhost:8443"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:3000/*##https://localhost:8443/*"
@@ -44,6 +65,77 @@
             "introspection.token.claim": "true"
           }
         }
+      ]
+    },
+    {
+      "clientId": "infraorgit-mcp",
+      "name": "InfraOrgIT MCP",
+      "secret": "dev-mcp-secret",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "redirectUris": [],
+      "webOrigins": [],
+      "protocolMappers": [
+        {
+          "name": "audience infraorgit-mcp",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "infraorgit-mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "mcp:read",
+        "mcp:operate"
+      ],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "infraorgit-mcp-desktop",
+      "name": "InfraOrgIT MCP desktop",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1/*"
+      ],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience infraorgit-mcp",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "infraorgit-mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "mcp:read"
+      ],
+      "optionalClientScopes": [
+        "mcp:operate"
       ]
     }
   ],
