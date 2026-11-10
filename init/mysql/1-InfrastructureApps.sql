@@ -723,6 +723,33 @@ CREATE TABLE `Translations` (
   UNIQUE KEY `IX_Translations_EntityType_EntityId_Field_Language` (`EntityType`,`EntityId`,`Field`,`Language`)
 ) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `TunnelSessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `TunnelSessions` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `SessionKey` varchar(100) NOT NULL,
+  `UserId` int NOT NULL,
+  `ActorUsername` varchar(100) NOT NULL,
+  `ClientId` varchar(100) DEFAULT NULL,
+  `ServerId` int NOT NULL,
+  `ServerApplicationId` int DEFAULT NULL,
+  `LocalPort` int NOT NULL,
+  `TargetHost` varchar(255) NOT NULL,
+  `TargetPort` int NOT NULL,
+  `StartedAt` datetime(6) NOT NULL,
+  `LastSeenAt` datetime(6) NOT NULL,
+  `EndedAt` datetime(6) DEFAULT NULL,
+  `Outcome` varchar(20) NOT NULL,
+  `ErrorCode` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_TunnelSessions_UserId_SessionKey` (`UserId`,`SessionKey`),
+  KEY `IX_TunnelSessions_ActorUsername` (`ActorUsername`),
+  KEY `IX_TunnelSessions_Outcome_LastSeenAt` (`Outcome`,`LastSeenAt`),
+  KEY `IX_TunnelSessions_ServerId` (`ServerId`),
+  CONSTRAINT `CK_TunnelSessions_Outcome` CHECK ((`Outcome` in (_utf8mb4'Active',_utf8mb4'Stopped',_utf8mb4'Error',_utf8mb4'Stale')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
