@@ -244,7 +244,7 @@ CREATE TABLE `AuditEvents` (
   KEY `IX_AuditEvents_OccurredAt` (`OccurredAt`),
   CONSTRAINT `CK_AuditEvents_Kind` CHECK ((`Kind` in (_utf8mb4'McpToolCall',_utf8mb4'TunnelStart',_utf8mb4'TunnelStop',_utf8mb4'TunnelError'))),
   CONSTRAINT `CK_AuditEvents_Outcome` CHECK ((`Outcome` in (_utf8mb4'Ok',_utf8mb4'Error',_utf8mb4'Denied')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `CommandExecutions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -396,6 +396,28 @@ CREATE TABLE `GroupUser` (
   KEY `IX_GroupUser_UsersId` (`UsersId`),
   CONSTRAINT `FK_GroupUser_Groups_GroupsId` FOREIGN KEY (`GroupsId`) REFERENCES `Groups` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_GroupUser_Users_UsersId` FOREIGN KEY (`UsersId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `McpGrants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `McpGrants` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `UserId` int DEFAULT NULL,
+  `GroupId` int DEFAULT NULL,
+  `Action` varchar(50) NOT NULL,
+  `EnvironmentDefinitionId` int DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_McpGrants_Action_EnvironmentDefinitionId` (`Action`,`EnvironmentDefinitionId`),
+  KEY `IX_McpGrants_EnvironmentDefinitionId` (`EnvironmentDefinitionId`),
+  KEY `IX_McpGrants_GroupId` (`GroupId`),
+  KEY `IX_McpGrants_UserId` (`UserId`),
+  CONSTRAINT `FK_McpGrants_EnvironmentDefinitions_EnvironmentDefinitionId` FOREIGN KEY (`EnvironmentDefinitionId`) REFERENCES `EnvironmentDefinitions` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpGrants_Groups_GroupId` FOREIGN KEY (`GroupId`) REFERENCES `Groups` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpGrants_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `CK_McpGrants_Action` CHECK ((`Action` in (_utf8mb4'reachability.run',_utf8mb4'actions.run',_utf8mb4'*'))),
+  CONSTRAINT `CK_McpGrants_Subject` CHECK ((((`UserId` is null) + (`GroupId` is null)) = 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `MenuRole`;
@@ -740,7 +762,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
