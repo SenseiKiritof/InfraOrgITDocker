@@ -723,6 +723,32 @@ CREATE TABLE `Translations` (
   UNIQUE KEY `IX_Translations_EntityType_EntityId_Field_Language` (`EntityType`,`EntityId`,`Field`,`Language`)
 ) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `TunnelServices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `TunnelServices` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `ServerId` int NOT NULL,
+  `Name` varchar(100) NOT NULL,
+  `Mode` varchar(10) NOT NULL,
+  `TargetHost` varchar(255) NOT NULL DEFAULT '127.0.0.1',
+  `TargetPort` int DEFAULT NULL,
+  `LocalPort` int DEFAULT NULL,
+  `RemotePort` int DEFAULT NULL,
+  `Kind` varchar(10) NOT NULL DEFAULT 'Tcp',
+  `OpenPath` varchar(200) DEFAULT NULL,
+  `AutoStart` tinyint(1) NOT NULL,
+  `Enabled` tinyint(1) NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  `Version` int NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_TunnelServices_ServerId_Name` (`ServerId`,`Name`),
+  CONSTRAINT `FK_TunnelServices_Servers_ServerId` FOREIGN KEY (`ServerId`) REFERENCES `Servers` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `CK_TunnelServices_Kind` CHECK ((`Kind` in (_utf8mb4'Tcp',_utf8mb4'Http',_utf8mb4'Https'))),
+  CONSTRAINT `CK_TunnelServices_Mode` CHECK ((`Mode` in (_utf8mb4'Local',_utf8mb4'Dynamic',_utf8mb4'Remote')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `TunnelSessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -734,19 +760,26 @@ CREATE TABLE `TunnelSessions` (
   `ClientId` varchar(100) DEFAULT NULL,
   `ServerId` int NOT NULL,
   `ServerApplicationId` int DEFAULT NULL,
-  `LocalPort` int NOT NULL,
+  `LocalPort` int DEFAULT NULL,
   `TargetHost` varchar(255) NOT NULL,
-  `TargetPort` int NOT NULL,
+  `TargetPort` int DEFAULT NULL,
   `StartedAt` datetime(6) NOT NULL,
   `LastSeenAt` datetime(6) NOT NULL,
   `EndedAt` datetime(6) DEFAULT NULL,
   `Outcome` varchar(20) NOT NULL,
   `ErrorCode` varchar(100) DEFAULT NULL,
+  `Mode` varchar(10) NOT NULL DEFAULT 'Local',
+  `RemotePort` int DEFAULT NULL,
+  `TunnelServiceId` int DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_TunnelSessions_UserId_SessionKey` (`UserId`,`SessionKey`),
   KEY `IX_TunnelSessions_ActorUsername` (`ActorUsername`),
   KEY `IX_TunnelSessions_Outcome_LastSeenAt` (`Outcome`,`LastSeenAt`),
   KEY `IX_TunnelSessions_ServerId` (`ServerId`),
+  KEY `IX_TunnelSessions_ServerApplicationId` (`ServerApplicationId`),
+  KEY `IX_TunnelSessions_TunnelServiceId` (`TunnelServiceId`),
+  CONSTRAINT `FK_TunnelSessions_TunnelServices_TunnelServiceId` FOREIGN KEY (`TunnelServiceId`) REFERENCES `TunnelServices` (`Id`) ON DELETE SET NULL,
+  CONSTRAINT `CK_TunnelSessions_Mode` CHECK ((`Mode` in (_utf8mb4'Local',_utf8mb4'Dynamic',_utf8mb4'Remote'))),
   CONSTRAINT `CK_TunnelSessions_Outcome` CHECK ((`Outcome` in (_utf8mb4'Active',_utf8mb4'Stopped',_utf8mb4'Error',_utf8mb4'Stale')))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -789,7 +822,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
