@@ -238,10 +238,13 @@ CREATE TABLE `AuditEvents` (
   `DurationMs` int NOT NULL,
   `CorrelationId` varchar(100) DEFAULT NULL,
   `DetailJson` longtext,
+  `Hash` varchar(64) DEFAULT NULL,
+  `PrevHash` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `IX_AuditEvents_ActorUsername_OccurredAt` (`ActorUsername`,`OccurredAt`),
   KEY `IX_AuditEvents_Kind_OccurredAt` (`Kind`,`OccurredAt`),
   KEY `IX_AuditEvents_OccurredAt` (`OccurredAt`),
+  CONSTRAINT `CK_AuditEvents_Hash` CHECK (((`Hash` is null) or (char_length(`Hash`) = 64))),
   CONSTRAINT `CK_AuditEvents_Kind` CHECK ((`Kind` in (_utf8mb4'McpToolCall',_utf8mb4'TunnelStart',_utf8mb4'TunnelStop',_utf8mb4'TunnelError',_utf8mb4'FileTransfer',_utf8mb4'AdminChange'))),
   CONSTRAINT `CK_AuditEvents_Outcome` CHECK ((`Outcome` in (_utf8mb4'Ok',_utf8mb4'Error',_utf8mb4'Denied')))
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -689,7 +692,7 @@ CREATE TABLE `Servers` (
   CONSTRAINT `FK_Servers_ServerCredentials_CredentialId` FOREIGN KEY (`CredentialId`) REFERENCES `ServerCredentials` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_Servers_ServerCredentials_FileTransferCredentialId` FOREIGN KEY (`FileTransferCredentialId`) REFERENCES `ServerCredentials` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `FK_Servers_Servers_JumpServerId` FOREIGN KEY (`JumpServerId`) REFERENCES `Servers` (`Id`) ON DELETE RESTRICT,
-  CONSTRAINT `CK_Servers_FileTransferProtocol` CHECK (((`FileTransferProtocol` is null) or (`FileTransferProtocol` in (_utf8mb4'Sftp',_utf8mb4'Ftp'))))
+  CONSTRAINT `CK_Servers_FileTransferProtocol` CHECK (((`FileTransferProtocol` is null) or (`FileTransferProtocol` in (_utf8mb4'Sftp',_utf8mb4'Ftp',_utf8mb4'Ftps'))))
 ) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `Sessions`;
@@ -822,7 +825,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
