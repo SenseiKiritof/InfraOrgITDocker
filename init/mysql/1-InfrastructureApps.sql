@@ -401,6 +401,38 @@ CREATE TABLE `GroupUser` (
   CONSTRAINT `FK_GroupUser_Users_UsersId` FOREIGN KEY (`UsersId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `McpApprovals`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `McpApprovals` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `UserId` int NOT NULL,
+  `Action` varchar(50) NOT NULL,
+  `ServerId` int NOT NULL,
+  `ServerApplicationId` int DEFAULT NULL,
+  `ApplicationActionId` int DEFAULT NULL,
+  `ParametersJson` varchar(2048) NOT NULL,
+  `Status` varchar(20) NOT NULL,
+  `RequestedAt` datetime(6) NOT NULL,
+  `ExpiresAt` datetime(6) NOT NULL,
+  `DecidedAt` datetime(6) DEFAULT NULL,
+  `DecidedByUserId` int DEFAULT NULL,
+  `UsedAt` datetime(6) DEFAULT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_McpApprovals_ApplicationActionId` (`ApplicationActionId`),
+  KEY `IX_McpApprovals_DecidedByUserId` (`DecidedByUserId`),
+  KEY `IX_McpApprovals_ServerApplicationId` (`ServerApplicationId`),
+  KEY `IX_McpApprovals_ServerId` (`ServerId`),
+  KEY `IX_McpApprovals_Status_ExpiresAt` (`Status`,`ExpiresAt`),
+  KEY `IX_McpApprovals_UserId_Status_ExpiresAt` (`UserId`,`Status`,`ExpiresAt`),
+  CONSTRAINT `FK_McpApprovals_ApplicationActions_ApplicationActionId` FOREIGN KEY (`ApplicationActionId`) REFERENCES `ApplicationActions` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpApprovals_ServerApplications_ServerApplicationId` FOREIGN KEY (`ServerApplicationId`) REFERENCES `ServerApplications` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpApprovals_Servers_ServerId` FOREIGN KEY (`ServerId`) REFERENCES `Servers` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpApprovals_Users_DecidedByUserId` FOREIGN KEY (`DecidedByUserId`) REFERENCES `Users` (`Id`) ON DELETE SET NULL,
+  CONSTRAINT `FK_McpApprovals_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `CK_McpApprovals_Status` CHECK ((`Status` in (_utf8mb4'Pending',_utf8mb4'Approved',_utf8mb4'Denied',_utf8mb4'Used',_utf8mb4'Expired')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `McpGrants`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -825,7 +857,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
