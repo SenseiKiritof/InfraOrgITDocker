@@ -7,6 +7,8 @@ development stack; for a production server, use the published-image stack in
 
 ![InfraOrgIT home page after sign-in](docs/screenshots/home.png)
 
+The screenshot uses fictitious demo data, not a real installation.
+
 ## Start
 
 Requirements: Docker Engine with Compose v2, and `make` for the commands below.
