@@ -44,11 +44,15 @@ are built and the realm is imported.
 
 ## Sign in
 
-The development realm and the bootstrap administrator are created from
-`InfraOrgITDocker/.env`:
+The development realm seeds the application user from
+`keycloak/realm-infraorgit.json`:
 
-- user `admin`
-- password `dev-admin` unless you changed `ADMIN_PASSWORD` in `.env`
+- application user `admin`
+- password `dev-admin`
+
+The Keycloak master administrator is separate, from `InfraOrgITDocker/.env`:
+`KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD` (default `dev-keycloak-admin`) for
+the admin console on `:18081/admin`.
 
 These credentials are for development only. In production the deploy
 preflight refuses the default password and the bootstrap admin must change it
@@ -61,7 +65,8 @@ at first login.
   audit.
 - **API** with MCP at `/mcp`.
 - **Keycloak** on `:18081` for identity; MFA is opt-in with
-  `KEYCLOAK_MFA=true`.
+  `KEYCLOAK_MFA=true`. The public desktop client can request `offline_access`;
+  offline sessions are bounded to 30 days idle and 90 days maximum.
 - **MySQL** for the application and a second MySQL for Keycloak.
 - **HTTPS** on the full stack through Caddy; the certificate is local and
   self-signed.

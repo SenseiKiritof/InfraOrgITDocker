@@ -29,6 +29,8 @@ docker compose up -d --wait mysql mysql-keycloak keycloak
 
 Keycloak imports `keycloak/realm-infraorgit.json`: client `infraorgit`, test user `admin` / `dev-admin`, `SystemAdmin` in the app through `init/mysql/2-BaseData.sql`. Development-only credentials, never in production.
 
+`infraorgit-mcp-desktop` can request the optional `offline_access` scope for the silent desktop login; the web client and the `infraorgit-mcp` service account cannot. Offline sessions are bounded to 30 days idle and 90 days max, independently of the 30-minute / 8-hour browser SSO limits.
+
 If you change the realm, the client or the secret, `--import-realm` does not update an existing realm. Use `make reset` from the meta repo (removes the volumes) and restart.
 
 Keycloak console: http://localhost:18081/admin (admin hostname) with the admin credentials in `.env`.

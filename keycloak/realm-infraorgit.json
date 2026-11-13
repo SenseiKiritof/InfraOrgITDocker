@@ -12,6 +12,9 @@
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 28800,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespan": 7776000,
+  "offlineSessionMaxLifespanEnabled": true,
   "clientScopes": [
     {
       "name": "profile",
@@ -544,7 +547,8 @@
       ],
       "optionalClientScopes": [
         "mcp:operate",
-        "tunnels:operate"
+        "tunnels:operate",
+        "offline_access"
       ]
     }
   ],
@@ -553,6 +557,9 @@
       "username": "admin",
       "enabled": true,
       "emailVerified": true,
+      "realmRoles": [
+        "offline_access"
+      ],
       "firstName": "Dev",
       "lastName": "Admin",
       "email": "admin@example.invalid",
