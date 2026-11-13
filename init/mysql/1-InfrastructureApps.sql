@@ -849,11 +849,13 @@ CREATE TABLE `Users` (
   `Name` varchar(100) NOT NULL,
   `Surname` varchar(100) NOT NULL,
   `Username` varchar(100) NOT NULL,
+  `Theme` varchar(10) NOT NULL DEFAULT 'system',
   `CreatedAt` datetime(6) NOT NULL,
   `UpdatedAt` datetime(6) NOT NULL,
   `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
-  UNIQUE KEY `IX_Users_Username` (`Username`)
+  UNIQUE KEY `IX_Users_Username` (`Username`),
+  CONSTRAINT `CK_Users_Theme` CHECK ((`Theme` in (_utf8mb4'light',_utf8mb4'dark',_utf8mb4'system')))
 ) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -880,7 +882,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
