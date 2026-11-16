@@ -438,36 +438,73 @@ CREATE TABLE `GroupUser` (
   CONSTRAINT `FK_GroupUser_Users_UsersId` FOREIGN KEY (`UsersId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `McpApprovals`;
+DROP TABLE IF EXISTS `McpAgentPermissions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `McpApprovals` (
+CREATE TABLE `McpAgentPermissions` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `Action` varchar(50) NOT NULL,
+  `EnvironmentDefinitionId` int DEFAULT NULL,
+  `AgentId` int NOT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  `Version` int NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `IX_McpAgentPermissions_Action_EnvironmentDefinitionId` (`Action`,`EnvironmentDefinitionId`),
+  KEY `IX_McpAgentPermissions_AgentId` (`AgentId`),
+  KEY `IX_McpAgentPermissions_EnvironmentDefinitionId` (`EnvironmentDefinitionId`),
+  CONSTRAINT `FK_McpAgentPermissions_EnvironmentDefinitions_EnvironmentDefini~` FOREIGN KEY (`EnvironmentDefinitionId`) REFERENCES `EnvironmentDefinitions` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpAgentPermissions_McpAgents_AgentId` FOREIGN KEY (`AgentId`) REFERENCES `McpAgents` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `CK_McpAgentPermissions_Action` CHECK ((`Action` in (_utf8mb4'reachability.run',_utf8mb4'actions.run',_utf8mb4'*')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `McpAgents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `McpAgents` (
   `Id` int NOT NULL AUTO_INCREMENT,
   `UserId` int NOT NULL,
-  `Action` varchar(50) NOT NULL,
-  `ServerId` int NOT NULL,
-  `ServerApplicationId` int DEFAULT NULL,
-  `ApplicationActionId` int DEFAULT NULL,
-  `ParametersJson` varchar(2048) NOT NULL,
+  `ClientKey` varchar(200) NOT NULL,
+  `Name` varchar(200) NOT NULL,
   `Status` varchar(20) NOT NULL,
-  `RequestedAt` datetime(6) NOT NULL,
-  `ExpiresAt` datetime(6) NOT NULL,
+  `ApprovedAt` datetime(6) DEFAULT NULL,
+  `ApprovedByUserId` int DEFAULT NULL,
+  `LastSeenAt` datetime(6) DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  `Version` int NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_McpAgents_UserId_ClientKey` (`UserId`,`ClientKey`),
+  KEY `IX_McpAgents_ApprovedByUserId` (`ApprovedByUserId`),
+  KEY `IX_McpAgents_Status` (`Status`),
+  CONSTRAINT `FK_McpAgents_Users_ApprovedByUserId` FOREIGN KEY (`ApprovedByUserId`) REFERENCES `Users` (`Id`) ON DELETE SET NULL,
+  CONSTRAINT `FK_McpAgents_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `CK_McpAgents_Status` CHECK ((`Status` in (_utf8mb4'Pending',_utf8mb4'Approved',_utf8mb4'Denied')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `McpPermissionRequests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `McpPermissionRequests` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `AgentId` int NOT NULL,
+  `Action` varchar(50) NOT NULL,
+  `EnvironmentDefinitionId` int DEFAULT NULL,
+  `Reason` varchar(500) DEFAULT NULL,
+  `Status` varchar(20) NOT NULL,
   `DecidedAt` datetime(6) DEFAULT NULL,
   `DecidedByUserId` int DEFAULT NULL,
-  `UsedAt` datetime(6) DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  `Version` int NOT NULL,
   PRIMARY KEY (`Id`),
-  KEY `IX_McpApprovals_ApplicationActionId` (`ApplicationActionId`),
-  KEY `IX_McpApprovals_DecidedByUserId` (`DecidedByUserId`),
-  KEY `IX_McpApprovals_ServerApplicationId` (`ServerApplicationId`),
-  KEY `IX_McpApprovals_ServerId` (`ServerId`),
-  KEY `IX_McpApprovals_Status_ExpiresAt` (`Status`,`ExpiresAt`),
-  KEY `IX_McpApprovals_UserId_Status_ExpiresAt` (`UserId`,`Status`,`ExpiresAt`),
-  CONSTRAINT `FK_McpApprovals_ApplicationActions_ApplicationActionId` FOREIGN KEY (`ApplicationActionId`) REFERENCES `ApplicationActions` (`Id`) ON DELETE CASCADE,
-  CONSTRAINT `FK_McpApprovals_ServerApplications_ServerApplicationId` FOREIGN KEY (`ServerApplicationId`) REFERENCES `ServerApplications` (`Id`) ON DELETE CASCADE,
-  CONSTRAINT `FK_McpApprovals_Servers_ServerId` FOREIGN KEY (`ServerId`) REFERENCES `Servers` (`Id`) ON DELETE CASCADE,
-  CONSTRAINT `FK_McpApprovals_Users_DecidedByUserId` FOREIGN KEY (`DecidedByUserId`) REFERENCES `Users` (`Id`) ON DELETE SET NULL,
-  CONSTRAINT `FK_McpApprovals_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE,
-  CONSTRAINT `CK_McpApprovals_Status` CHECK ((`Status` in (_utf8mb4'Pending',_utf8mb4'Approved',_utf8mb4'Denied',_utf8mb4'Used',_utf8mb4'Expired')))
+  KEY `IX_McpPermissionRequests_AgentId_Status` (`AgentId`,`Status`),
+  KEY `IX_McpPermissionRequests_DecidedByUserId` (`DecidedByUserId`),
+  KEY `IX_McpPermissionRequests_EnvironmentDefinitionId` (`EnvironmentDefinitionId`),
+  CONSTRAINT `FK_McpPermissionRequests_EnvironmentDefinitions_EnvironmentDefi~` FOREIGN KEY (`EnvironmentDefinitionId`) REFERENCES `EnvironmentDefinitions` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpPermissionRequests_McpAgents_AgentId` FOREIGN KEY (`AgentId`) REFERENCES `McpAgents` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_McpPermissionRequests_Users_DecidedByUserId` FOREIGN KEY (`DecidedByUserId`) REFERENCES `Users` (`Id`) ON DELETE SET NULL,
+  CONSTRAINT `CK_McpPermissionRequests_Status` CHECK ((`Status` in (_utf8mb4'Pending',_utf8mb4'Approved',_utf8mb4'Denied')))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `McpGrants`;
@@ -898,7 +935,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12'),('20261113213926_AddConnectionPolicy','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12'),('20261113213926_AddConnectionPolicy','10.0.12'),('20261115171619_McpAgentPermissions','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
