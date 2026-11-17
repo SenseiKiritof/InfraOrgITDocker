@@ -50,7 +50,7 @@ body {
   content: "";
   width: 26px;
   height: 26px;
-  background: url("../img/logo.svg") no-repeat center / contain;
+  background: url("../img/brand-network.svg") no-repeat center / contain;
 }
 
 .pf-v5-c-login__main {
