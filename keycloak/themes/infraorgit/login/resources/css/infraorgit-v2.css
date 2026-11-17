@@ -1,0 +1,133 @@
+:root {
+  --ioi-bg: #080d14;
+  --ioi-panel: #111823;
+  --ioi-panel-2: #0b111a;
+  --ioi-border: #243244;
+  --ioi-text: #e5edf7;
+  --ioi-dim: #aebccd;
+  --ioi-accent: #5eead4;
+  --ioi-accent-strong: #2dd4bf;
+  --ioi-accent-ink: #04241f;
+}
+
+html,
+body,
+.pf-v5-c-login {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 18% 12%, #12303a 0, transparent 38%),
+    radial-gradient(circle at 82% 88%, #1a1d3a 0, transparent 42%),
+    var(--ioi-bg) !important;
+  color: var(--ioi-text) !important;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.pf-v5-c-login__container {
+  grid-template-columns: minmax(0, 28rem) !important;
+  justify-content: center;
+}
+
+#kc-header {
+  margin-bottom: 1.25rem;
+}
+
+#kc-header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  color: var(--ioi-text) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+#kc-header-wrapper::before {
+  content: "";
+  width: 26px;
+  height: 26px;
+  background: url("../img/brand-network.svg") no-repeat center / contain;
+}
+
+.pf-v5-c-login__main {
+  overflow: hidden;
+  border: 1px solid var(--ioi-border) !important;
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--ioi-panel) 94%, transparent) !important;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 45%);
+  backdrop-filter: blur(12px);
+}
+
+.pf-v5-c-login__main-header,
+.pf-v5-c-login__main-body,
+.pf-v5-c-login__main-footer {
+  background: transparent !important;
+  color: var(--ioi-text) !important;
+}
+
+#kc-page-title {
+  color: var(--ioi-text) !important;
+  font-size: 1.35rem !important;
+  font-weight: 650 !important;
+}
+
+.pf-v5-c-form__label,
+.pf-v5-c-form__label-text,
+.pf-v5-c-form__helper-text,
+.pf-v5-c-login__main-footer-band-item {
+  color: var(--ioi-dim) !important;
+}
+
+.pf-v5-c-form-control {
+  --pf-v5-c-form-control--BackgroundColor: var(--ioi-panel-2);
+  --pf-v5-c-form-control--Color: var(--ioi-text);
+  --pf-v5-c-form-control--BorderTopColor: var(--ioi-border);
+  --pf-v5-c-form-control--BorderRightColor: var(--ioi-border);
+  --pf-v5-c-form-control--BorderBottomColor: var(--ioi-border);
+  --pf-v5-c-form-control--BorderLeftColor: var(--ioi-border);
+  border-radius: 8px;
+}
+
+.pf-v5-c-form-control:focus-within {
+  --pf-v5-c-form-control--BorderTopColor: var(--ioi-accent);
+  --pf-v5-c-form-control--BorderRightColor: var(--ioi-accent);
+  --pf-v5-c-form-control--BorderBottomColor: var(--ioi-accent);
+  --pf-v5-c-form-control--BorderLeftColor: var(--ioi-accent);
+}
+
+.pf-v5-c-button.pf-m-primary {
+  --pf-v5-c-button--m-primary--BackgroundColor: var(--ioi-accent);
+  --pf-v5-c-button--m-primary--Color: var(--ioi-accent-ink);
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  --pf-v5-c-button--m-primary--BackgroundColor: var(--ioi-accent-strong);
+}
+
+.pf-v5-c-button.pf-m-link,
+a {
+  color: var(--ioi-accent) !important;
+}
+
+.pf-v5-c-alert.pf-m-danger {
+  border-color: color-mix(in srgb, #ff7b7b 45%, var(--ioi-border)) !important;
+  background: #2a1417 !important;
+  color: #ffb4b4 !important;
+}
+
+.pf-v5-c-login__main-footer-band {
+  border-top: 1px solid var(--ioi-border) !important;
+  background: var(--ioi-panel-2) !important;
+}
+
+@media (max-width: 480px) {
+  .pf-v5-c-login__main {
+    border-radius: 12px !important;
+  }
+}
