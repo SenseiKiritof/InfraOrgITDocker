@@ -71,6 +71,7 @@ services:
       - "127.0.0.1:18081:8080"
     volumes:
       - ./keycloak/realm-infraorgit.json:/opt/keycloak/data/import/realm.json:ro
+      - ./keycloak/themes/infraorgit:/opt/keycloak/themes/infraorgit:ro
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000'"]
       interval: 5s
