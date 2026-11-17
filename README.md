@@ -58,6 +58,18 @@ These credentials are for development only. In production the deploy
 preflight refuses the default password and the bootstrap admin must change it
 at first login.
 
+### Login theme
+
+The realm uses the `infraorgit` login theme from
+`keycloak/themes/infraorgit`, mounted read-only at
+`/opt/keycloak/themes/infraorgit`. It is a dark PatternFly card with the
+InfraOrgIT mark and Italian copy (`locales=it,en`, default `it`). The CSS lives
+in `login/resources/css/infraorgit.css`, the strings in
+`login/messages/messages_it.properties`. Fresh databases import the realm with
+`loginTheme` and the locale settings; on an existing database set the same
+values from the admin console. Restart Keycloak after changing theme files.
+Changes to the realm or clients on an existing volume still need `make reset`.
+
 ## What is included
 
 - **Web UI** on `:8443` (full stack) or `:3000` (Vite): inventory, diagrams,
