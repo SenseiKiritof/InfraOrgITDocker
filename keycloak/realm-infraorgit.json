@@ -575,8 +575,11 @@
   "loginTheme": "infraorgit",
   "internationalizationEnabled": true,
   "supportedLocales": [
+    "en",
     "it",
-    "en"
+    "fr",
+    "de",
+    "es"
   ],
-  "defaultLocale": "it"
+  "defaultLocale": "en"
 }
