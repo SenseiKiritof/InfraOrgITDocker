@@ -246,10 +246,38 @@ CREATE TABLE `AuditEvents` (
   KEY `IX_AuditEvents_Kind_OccurredAt` (`Kind`,`OccurredAt`),
   KEY `IX_AuditEvents_OccurredAt` (`OccurredAt`),
   CONSTRAINT `CK_AuditEvents_Hash` CHECK (((`Hash` is null) or (char_length(`Hash`) = 64))),
-  CONSTRAINT `CK_AuditEvents_Kind` CHECK ((`Kind` in (_utf8mb4'McpToolCall',_utf8mb4'TunnelStart',_utf8mb4'TunnelStop',_utf8mb4'TunnelError',_utf8mb4'FileTransfer',_utf8mb4'AdminChange'))),
+  CONSTRAINT `CK_AuditEvents_Kind` CHECK ((`Kind` in (_utf8mb4'McpToolCall',_utf8mb4'TunnelStart',_utf8mb4'TunnelStop',_utf8mb4'TunnelError',_utf8mb4'ClientCheck',_utf8mb4'FileTransfer',_utf8mb4'AdminChange'))),
   CONSTRAINT `CK_AuditEvents_Outcome` CHECK ((`Outcome` in (_utf8mb4'Ok',_utf8mb4'Error',_utf8mb4'Denied')))
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `ClientEvents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ClientEvents` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `EventId` varchar(100) NOT NULL,
+  `Username` varchar(100) NOT NULL,
+  `Kind` varchar(50) NOT NULL,
+  `OccurredAt` datetime(6) NOT NULL,
+  `ReceivedAt` datetime(6) NOT NULL,
+  `ServerId` int DEFAULT NULL,
+  `TargetHost` varchar(255) DEFAULT NULL,
+  `TargetPort` int DEFAULT NULL,
+  `LocalPort` int DEFAULT NULL,
+  `Outcome` varchar(20) NOT NULL,
+  `ErrorCode` varchar(100) DEFAULT NULL,
+  `DurationMs` int NOT NULL,
+  `DetailJson` varchar(4000) DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  `Version` int NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_ClientEvents_Username_EventId` (`Username`,`EventId`),
+  KEY `IX_ClientEvents_OccurredAt` (`OccurredAt`),
+  KEY `IX_ClientEvents_ServerId` (`ServerId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 DROP TABLE IF EXISTS `CommandExecutions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -940,7 +968,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12'),('20261113213926_AddConnectionPolicy','10.0.12'),('20261115171619_McpAgentPermissions','10.0.12'),('20261116100050_UpdateMcpAgentsMenu','10.0.12'),('20261117173509_SudoCommands','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12'),('20261113213926_AddConnectionPolicy','10.0.12'),('20261115171619_McpAgentPermissions','10.0.12'),('20261116100050_UpdateMcpAgentsMenu','10.0.12'),('20261117173509_SudoCommands','10.0.12'),('20261118092910_ClientEvents','10.0.12'),('20261118093034_ClientCheckAuditKind','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
