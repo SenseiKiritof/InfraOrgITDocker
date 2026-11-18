@@ -43,11 +43,11 @@ Keycloak in production mode and serves the app through Caddy on
 are built and the realm is imported.
 
 The web image bakes its version into the SPA. Published images receive the
-release tag (`APP_VERSION=v0.3.12`), while a source build without the argument
+release tag (`APP_VERSION=v0.3.13`), while a source build without the argument
 shows `dev`. To label a local image with a version:
 
 ```bash
-docker compose build --build-arg APP_VERSION=v0.3.12 web
+docker compose build --build-arg APP_VERSION=v0.3.13 web
 ```
 
 ## Sign in
