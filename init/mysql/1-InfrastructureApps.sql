@@ -791,11 +791,36 @@ CREATE TABLE `ServerCredentials` (
   `Version` int NOT NULL,
   `EncryptedSudoSecret` longtext,
   `SudoKeyVersion` int DEFAULT NULL,
+  `OwnerUserId` int DEFAULT NULL,
+  `AllowOffline` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_ServerCredentials_Name` (`Name`),
+  KEY `IX_ServerCredentials_OwnerUserId` (`OwnerUserId`),
+  CONSTRAINT `FK_ServerCredentials_Users_OwnerUserId` FOREIGN KEY (`OwnerUserId`) REFERENCES `Users` (`Id`) ON DELETE RESTRICT,
   CONSTRAINT `CK_ServerCredentials_AuthType` CHECK ((`AuthType` in (_utf8mb4'Password',_utf8mb4'PrivateKey')))
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `DesktopDevices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `DesktopDevices` (
+  `Id` int NOT NULL AUTO_INCREMENT,
+  `UserId` int NOT NULL,
+  `Name` varchar(100) NOT NULL,
+  `PublicKeyPem` longtext NOT NULL,
+  `Fingerprint` varchar(64) NOT NULL,
+  `LastSeenAt` datetime(6) NOT NULL,
+  `RevokedAt` datetime(6) DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL,
+  `UpdatedAt` datetime(6) NOT NULL,
+  `Version` int NOT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `IX_DesktopDevices_UserId_Fingerprint` (`UserId`,`Fingerprint`),
+  KEY `FK_DesktopDevices_Users_UserId` (`UserId`),
+  CONSTRAINT `FK_DesktopDevices_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 DROP TABLE IF EXISTS `Servers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -968,7 +993,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `__EFMigrationsHistory` WRITE;
 /*!40000 ALTER TABLE `__EFMigrationsHistory` DISABLE KEYS */;
-REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12'),('20261113213926_AddConnectionPolicy','10.0.12'),('20261115171619_McpAgentPermissions','10.0.12'),('20261116100050_UpdateMcpAgentsMenu','10.0.12'),('20261117173509_SudoCommands','10.0.12'),('20261118092910_ClientEvents','10.0.12'),('20261118093034_ClientCheckAuditKind','10.0.12');
+REPLACE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`) VALUES ('20261025215632_InitialIdentity','10.0.12'),('20261025223138_Inventory','10.0.12'),('20261025230904_TopologyAndDiagrams','10.0.12'),('20261025232519_RemoteManagement','10.0.12'),('20261026222721_SharedSessions','10.0.12'),('20261027181558_AddServerJumpHost','10.0.12'),('20261028143828_ApplicationHostnameAndApiKeys','10.0.12'),('20261028150357_ApplicationIgnoreSslErrors','10.0.12'),('20261028160404_ApplicationEnvironmentsAndApiCalls','10.0.12'),('20261028163304_ApplicationApiCallBinary','10.0.12'),('20261029085250_ApplicationIsFrontend','10.0.12'),('20261029105835_Translations','10.0.12'),('20261029145806_ApplicationTypes','10.0.12'),('20261029163319_InventoryDetails','10.0.12'),('20261103112700_AddFileTransfer','10.0.12'),('20261109113804_McpFoundation','10.0.12'),('20261110090600_McpGrants','10.0.12'),('20261110220056_AddTunnelSessions','10.0.12'),('20261111085400_AddTunnelServices','10.0.12'),('20261111144424_ScrubApplicationApiCallUrls','10.0.12'),('20261111162949_ExpandAuditKinds','10.0.12'),('20261111191925_AddAuditHashChain','10.0.12'),('20261111212502_McpApprovals','10.0.12'),('20261112155150_AddDownloadTickets','10.0.12'),('20261112231450_AddUserTheme','10.0.12'),('20261113213926_AddConnectionPolicy','10.0.12'),('20261115171619_McpAgentPermissions','10.0.12'),('20261116100050_UpdateMcpAgentsMenu','10.0.12'),('20261117173509_SudoCommands','10.0.12'),('20261118092910_ClientEvents','10.0.12'),('20261118093034_ClientCheckAuditKind','10.0.12'),('20261118110802_CredentialDistribution','10.0.12');
 /*!40000 ALTER TABLE `__EFMigrationsHistory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
