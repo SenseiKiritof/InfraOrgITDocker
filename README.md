@@ -43,11 +43,11 @@ Keycloak in production mode and serves the app through Caddy on
 are built and the realm is imported.
 
 The web image bakes its version into the SPA. Published images receive the
-release tag (`APP_VERSION=v0.3.13`), while a source build without the argument
+release tag (`APP_VERSION=v0.10.1`), while a source build without the argument
 shows `dev`. To label a local image with a version:
 
 ```bash
-docker compose build --build-arg APP_VERSION=v0.3.13 web
+docker compose build --build-arg APP_VERSION=v0.10.1 web
 ```
 
 ## Sign in
@@ -83,8 +83,8 @@ Changes to the realm or clients on an existing volume still need `make reset`.
 ## What is included
 
 - **Web UI** on `:8443` (full stack) or `:3000` (Vite): inventory, diagrams,
-  SSH console, file transfer, reachability tests, credential owners and desktop
-  device enrollment, MCP agents, tunnels and audit.
+  HAProxy monitoring, SSH console, file transfer, reachability tests, credential
+  owners and desktop device enrollment, MCP agents, tunnels and audit.
 - **API** with MCP at `/mcp`.
 - **Keycloak** on `:18081` for identity; MFA is opt-in with
   `KEYCLOAK_MFA=true`. The public desktop client can request `offline_access`;
